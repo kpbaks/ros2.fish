@@ -1,8 +1,12 @@
 not status is-interactive; and return
 
+# variable namespace = ROS2_FISH
 
 function _ros2_install --on-event ros2_install
     # Set universal variables, create bindings, and other initialization logic.
+    if not set -q ROS2_FISH_ABBR_OR_ALIAS
+		set -Ux ROS2_FISH_ABBR_OR_ALIAS abbr
+	end
 end
 
 function _ros2_update --on-event ros2_update
@@ -11,9 +15,10 @@ end
 
 function _ros2_uninstall --on-event ros2_uninstall
     # Erase "private" functions, variables, bindings, and other uninstall logic.
+    set --erase ROS2_FISH_ABBR_OR_ALIAS
+	set --erase ROS2_FISH_VERBOSE
 end
 
-# variable namespace = ROS2_FISH
 
 set -g ROS2_FISH_VERBOSE
 
@@ -65,9 +70,11 @@ else
     return 0
 end
 
-for cmd in ros2 colcon
+for cmd in ros2 colcon rosdep
     $argcomplete --shell fish $cmd | source
 end
+
+# ROS2 aliases/abbreviations
 
 alias rtl 'ros2 topic list'
 alias rnl 'ros2 node list'
@@ -91,3 +98,7 @@ if command --query fzf
             | fzf $ROS2_FISH_FZF_OPTS --preview 'ros2 topic info {}'
     end
 end
+
+abbr -a r ros2
+abbr -a rr ros2 run
+abbr -a cb colcon build
