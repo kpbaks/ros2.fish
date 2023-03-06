@@ -1,5 +1,18 @@
 not status is-interactive; and return
 
+
+function _ros2_install --on-event ros2_install
+    # Set universal variables, create bindings, and other initialization logic.
+end
+
+function _ros2_update --on-event ros2_update
+    # Migrate resources, print warnings, and other update logic.
+end
+
+function _ros2_uninstall --on-event ros2_uninstall
+    # Erase "private" functions, variables, bindings, and other uninstall logic.
+end
+
 # variable namespace = ROS2_FISH
 
 set -g ROS2_FISH_VERBOSE
@@ -42,14 +55,18 @@ end
 
 bass source /opt/ros/$ROS_DISTRO/setup.bash
 
-if not command --query register-python-argcomplete
-    set -q ROS2_FISH_VERBOSE
-    and printf "%s %s\n" (status current-filename) "register-python-argcomplete not installed"
-    return
+set -l argcomplete
+if command -q register-python-argcomplete
+    set argcomplete register-python-argcomplete
+else if command -q register-python-argcomplete3
+    set argcomplete register-python-argcomplete3
+else
+    __ros2_fish_echo "register-python-argcomplete not installed"
+    return 0
 end
 
 for cmd in ros2 colcon
-    register-python-argcomplete --shell fish $cmd | source
+    $argcomplete --shell fish $cmd | source
 end
 
 alias rtl 'ros2 topic list'
