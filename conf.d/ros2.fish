@@ -101,4 +101,4 @@ end
 
 abbr -a r ros2
 abbr -a rr ros2 run
-abbr -a cb colcon build
+abbr -a cb colcon build --symlink-install 
