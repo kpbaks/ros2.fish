@@ -5,8 +5,8 @@ not status is-interactive; and return
 function _ros2_install --on-event ros2_install
     # Set universal variables, create bindings, and other initialization logic.
     if not set -q ROS2_FISH_ABBR_OR_ALIAS
-		set -Ux ROS2_FISH_ABBR_OR_ALIAS abbr
-	end
+        set -Ux ROS2_FISH_ABBR_OR_ALIAS abbr
+    end
 end
 
 function _ros2_update --on-event ros2_update
@@ -16,7 +16,7 @@ end
 function _ros2_uninstall --on-event ros2_uninstall
     # Erase "private" functions, variables, bindings, and other uninstall logic.
     set --erase ROS2_FISH_ABBR_OR_ALIAS
-	set --erase ROS2_FISH_VERBOSE
+    set --erase ROS2_FISH_VERBOSE
 end
 
 
@@ -101,4 +101,7 @@ end
 
 abbr -a r ros2
 abbr -a rr ros2 run
-abbr -a cb colcon build --symlink-install 
+abbr -a cb colcon build --symlink-install --packages-select
+abbr -a rbi ros2 bag info '*.bag'
+abbr -a rbp ros2 bag play
+abbr -a rbr ros2 bag record
