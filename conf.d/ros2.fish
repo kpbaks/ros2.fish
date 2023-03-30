@@ -102,6 +102,49 @@ end
 abbr -a r ros2
 abbr -a rr ros2 run
 abbr -a cb colcon build --symlink-install --packages-select
-abbr -a rbi ros2 bag info '*.bag'
-abbr -a rbp ros2 bag play
+abbr -a rbi --set-cursor ros2 bag info '*%.bag'
+abbr -a rbp --set-cursor ros2 bag play '*%.bag'
 abbr -a rbr ros2 bag record
+
+
+# rosdep
+abbr -a rd rosdep
+abbr -a rdi rosdep init
+abbr -a rdu rosdep update
+abbr -a rdc rosdep check
+
+
+# Check if rosdep is installed
+if not command --query rosdep
+    __ros2_fish_echo "rosdep not installed"
+end
+
+# Check if rosdep has been initialized
+# `rosdep` looks for a files in `/etc/ros/rosdep/sources.list.d/`
+# If the directory does not exist, or there are no files in it, then rosdep has not been initialized
+if not test -d /etc/ros/rosdep/sources.list.d/ -o (count (command ls /etc/ros/rosdep/sources.list.d/)) -gt 0
+    # Initialize rosdep
+    __ros2_fish_echo "rosdep not initialized"
+    __ros2_fish_echo "initializing rosdep"
+    # Check if user is root. The root user has id 0
+    if test (id -u) -eq 0
+        __ros2_fish_echo "running rosdep init as root"
+        rosdep init
+    else
+        __ros2_fish_echo "running rosdep init as user"
+        sudo rosdep init
+    end
+end
+
+# Check if rosdep has been updated
+# After rosdep has been initialized, it needs to be updated
+# Calling `rosdep update` will update the rosdep database, and write a cache 
+# to ~/.ros/rosdep/{meta,source}_cache
+# if the cache does not exist, then rosdep has not been updated
+if not test -f ~/.ros/rosdep/meta_cache.yaml -o -f ~/.ros/rosdep/source_cache.yaml
+    # Update rosdep
+    __ros2_fish_echo "rosdep not updated"
+    __ros2_fish_echo "updating rosdep"
+    rosdep update
+    __ros2_fish_echo "rosdep updated"
+end
