@@ -70,9 +70,10 @@ else
     return 0
 end
 
-for cmd in ros2 colcon rosdep
-    $argcomplete --shell fish $cmd | source
-end
+# TODO: register-python-argcomplete does not work with fish
+# for cmd in ros2 colcon rosdep
+#     $argcomplete --shell fish $cmd | source
+# end
 
 # ROS2 aliases/abbreviations
 

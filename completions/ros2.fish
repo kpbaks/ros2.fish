@@ -28,31 +28,32 @@
 #   Call `ros2 <command> -h` for more detailed usage.
 
 
-complete -c ros2 -f # disable file completion
+set -l C complete -c ros2
 
-complete -c ros2 -s h -l help -d "show this help message and exit"
+$C -f # disable file completion
+
+$C -s h -l help -d "show this help message and exit"
 
 set -l ros2_commands action bag component daemon doctor interface launch lifecycle multicast node param pkg run security service topic wtf
 
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a action -d "Various action related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a bag -d "Various rosbag related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a component -d "Various component related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a daemon -d "Various daemon related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a doctor -d "Check ROS setup and other potential issues"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a interface -d "Show information about ROS interfaces"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a launch -d "Run a launch file"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a lifecycle -d "Various lifecycle related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a multicast -d "Various multicast related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a node -d "Various node related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a param -d "Various param related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a pkg -d "Various package related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a run -d "Run a package specific executable"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a security -d "Various security related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a service -d "Various service related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a topic -d "Various topic related sub-commands"
-complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a wtf -d "Use `wtf` as alias to `doctor`"
-
-
+set -l subcommand "$C -n __fish_seen_subcommand_from $ros2_commands -a"
+$subcommand action -d "Various action related sub-commands"
+$subcommand bag -d "Various rosbag related sub-commands"
+$subcommand component -d "Various component related sub-commands"
+$subcommand daemon -d "Various daemon related sub-commands"
+$subcommand doctor -d "Check ROS setup and other potential issues"
+$subcommand interface -d "Show information about ROS interfaces"
+$subcommand launch -d "Run a launch file"
+$subcommand lifecycle -d "Various lifecycle related sub-commands"
+$subcommand multicast -d "Various multicast related sub-commands"
+$subcommand node -d "Various node related sub-commands"
+$subcommand param -d "Various param related sub-commands"
+$subcommand pkg -d "Various package related sub-commands"
+$subcommand run -d "Run a package specific executable"
+$subcommand security -d "Various security related sub-commands"
+$subcommand service -d "Various service related sub-commands"
+$subcommand topic -d "Various topic related sub-commands"
+$subcommand wtf -d "Use `wtf` as alias to `doctor`"
 
 # ros2 action -------------------------------------------------------------------------------------
 # ros2 action --help
@@ -70,17 +71,15 @@ complete -c ros2 -n "not __fish_seen_subcommand_from $ros2_commands" -a wtf -d "
 #
 #   Call `ros2 action <command> -h` for more detailed usage.
 
-set -l ros2_action_commands info list send_goal
-set -l ros2_action_command_descriptions \
-    "Print information about an action" \
-    "Output a list of action names" \
-    "Send an action goal"
-
-for i in (seq (count $ros2_action_commands))
-    set -l command $ros2_action_commands[$i]
-    set -l description $ros2_action_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from action; and not __fish_seen_subcommand_from $ros2_action_commands" -a $command -d $description
+begin
+    set -l ros2_action_commands info list send_goal
+    set -l action "$C -n '__fish_seen_subcommand_from action; and not __fish_seen_subcommand_from $ros2_action_commands' -a"
+    $action info -d "Print information about an action"
+    # set -l action_info 
+    $action list -d "Output a list of action names"
+    $action send_goal -d "Send an action goal"
 end
+
 
 # ros2 bag ----------------------------------------------------------------------------------------
 # ros2 bag --help
@@ -108,7 +107,7 @@ set -l ros2_bag_command_descriptions \
 for i in (seq (count $ros2_bag_commands))
     set -l command $ros2_bag_commands[$i]
     set -l description $ros2_bag_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from bag; and not __fish_seen_subcommand_from $ros2_bag_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from bag; and not __fish_seen_subcommand_from $ros2_bag_commands" -a $command -d $description
 end
 
 # ros2 component ----------------------------------------------------------------------------------
@@ -140,7 +139,7 @@ set -l ros2_component_command_descriptions \
 for i in (seq (count $ros2_component_commands))
     set -l command $ros2_component_commands[$i]
     set -l description $ros2_component_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from component; and not __fish_seen_subcommand_from $ros2_component_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from component; and not __fish_seen_subcommand_from $ros2_component_commands" -a $command -d $description
 end
 
 # ros2 daemon -------------------------------------------------------------------------------------
@@ -168,7 +167,7 @@ set -l ros2_daemon_command_descriptions \
 for i in (seq (count $ros2_daemon_commands))
     set -l command $ros2_daemon_commands[$i]
     set -l description $ros2_daemon_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from daemon; and not __fish_seen_subcommand_from $ros2_daemon_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from daemon; and not __fish_seen_subcommand_from $ros2_daemon_commands" -a $command -d $description
 end
 
 # ros2 doctor -------------------------------------------------------------------------------------
@@ -196,12 +195,12 @@ set -l ros2_doctor_command_descriptions \
 for i in (seq (count $ros2_doctor_commands))
     set -l command $ros2_doctor_commands[$i]
     set -l description $ros2_doctor_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from doctor wtf; and not __fish_seen_subcommand_from $ros2_doctor_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from doctor wtf; and not __fish_seen_subcommand_from $ros2_doctor_commands" -a $command -d $description
 end
 
-complete -c ros2 -n "__fish_seen_subcommand_from doctor" -s r -l report -d "Print all reports."
-complete -c ros2 -n "__fish_seen_subcommand_from doctor" -o rf -l report-failed -d "Print reports of failed checks only."
-complete -c ros2 -n "__fish_seen_subcommand_from doctor" -o iw -l include-warnings -d "Include warnings as failed checks. Warnings are ignored by default."
+$C -n "__fish_seen_subcommand_from doctor" -s r -l report -d "Print all reports."
+$C -n "__fish_seen_subcommand_from doctor" -o rf -l report-failed -d "Print reports of failed checks only."
+$C -n "__fish_seen_subcommand_from doctor" -o iw -l include-warnings -d "Include warnings as failed checks. Warnings are ignored by default."
 
 # ros2 interface ----------------------------------------------------------------------------------
 # ros2 interface --help
@@ -232,7 +231,7 @@ set -l ros2_interface_command_descriptions \
 for i in (seq (count $ros2_interface_commands))
     set -l command $ros2_interface_commands[$i]
     set -l description $ros2_interface_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from interface; and not __fish_seen_subcommand_from $ros2_interface_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from interface; and not __fish_seen_subcommand_from $ros2_interface_commands" -a $command -d $description
 end
 
 # ros2 launch -------------------------------------------------------------------------------------
@@ -265,7 +264,7 @@ set -l ros2_lifecycle_command_descriptions \
 for i in (seq (count $ros2_lifecycle_commands))
     set -l command $ros2_lifecycle_commands[$i]
     set -l description $ros2_lifecycle_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from lifecycle; and not __fish_seen_subcommand_from $ros2_lifecycle_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from lifecycle; and not __fish_seen_subcommand_from $ros2_lifecycle_commands" -a $command -d $description
 end
 
 # ros2 multicast ----------------------------------------------------------------------------------
@@ -291,7 +290,7 @@ set -l ros2_multicast_command_descriptions \
 for i in (seq (count $ros2_multicast_commands))
     set -l command $ros2_multicast_commands[$i]
     set -l description $ros2_multicast_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from multicast; and not __fish_seen_subcommand_from $ros2_multicast_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from multicast; and not __fish_seen_subcommand_from $ros2_multicast_commands" -a $command -d $description
 end
 
 # ros2 param --------------------------------------------------------------------------------------
@@ -327,7 +326,7 @@ set -l ros2_param_command_descriptions \
 for i in (seq (count $ros2_param_commands))
     set -l command $ros2_param_commands[$i]
     set -l description $ros2_param_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from param; and not __fish_seen_subcommand_from $ros2_param_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from param; and not __fish_seen_subcommand_from $ros2_param_commands" -a $command -d $description
 end
 
 # ros2 pkg ----------------------------------------------------------------------------------------
@@ -359,7 +358,7 @@ set -l ros2_pkg_command_descriptions \
 for i in (seq (count $ros2_pkg_commands))
     set -l command $ros2_pkg_commands[$i]
     set -l description $ros2_pkg_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from pkg; and not __fish_seen_subcommand_from $ros2_pkg_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from pkg; and not __fish_seen_subcommand_from $ros2_pkg_commands" -a $command -d $description
 end
 
 # ros2 run ----------------------------------------------------------------------------------------
@@ -412,7 +411,7 @@ set -l ros2_security_command_descriptions \
 for i in (seq (count $ros2_security_commands))
     set -l command $ros2_security_commands[$i]
     set -l description $ros2_security_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from security; and not __fish_seen_subcommand_from $ros2_security_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from security; and not __fish_seen_subcommand_from $ros2_security_commands" -a $command -d $description
 end
 
 # ros2 service ------------------------------------------------------------------------------------
@@ -444,7 +443,7 @@ set -l ros2_service_command_descriptions \
 for i in (seq (count $ros2_service_commands))
     set -l command $ros2_service_commands[$i]
     set -l description $ros2_service_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from service; and not __fish_seen_subcommand_from $ros2_service_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from service; and not __fish_seen_subcommand_from $ros2_service_commands" -a $command -d $description
 end
 
 # ros2 topic --------------------------------------------------------------------------------------
@@ -486,5 +485,5 @@ set -l ros2_topic_command_descriptions \
 for i in (seq (count $ros2_topic_commands))
     set -l command $ros2_topic_commands[$i]
     set -l description $ros2_topic_command_descriptions[$i]
-    complete -c ros2 -n "__fish_seen_subcommand_from topic; and not __fish_seen_subcommand_from $ros2_topic_commands" -a $command -d $description
+    $C -n "__fish_seen_subcommand_from topic; and not __fish_seen_subcommand_from $ros2_topic_commands" -a $command -d $description
 end
