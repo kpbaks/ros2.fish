@@ -60,24 +60,51 @@ def term_tree_view(root: Node, indent: int, formatter: Callable[[Node], str]) ->
         def gen_indentation_inner(
             number_of_remaining_children_for_each_parent: List[int], acc: str
         ) -> str:
-            match number_of_remaining_children_for_each_parent:
-                case []:
-                    return acc + ""
-                case [head] if head == 0:
+            l = len(number_of_remaining_children_for_each_parent)
+            if l == 0:
+                return acc + ""
+            elif l == 1:
+                head = number_of_remaining_children_for_each_parent[0]
+                if head == 0:
                     return acc + END + (START * (indent - 2)) + " " 
-                case [head] if head > 0:
+                elif head > 0:
                     return acc + TEE + (START * (indent - 2)) + " "
-                case [head, *tail] if head == 0:
+                else:
+                    raise Exception("unreachable")
+            else:
+                head = number_of_remaining_children_for_each_parent[0]
+                tail = number_of_remaining_children_for_each_parent[1:]
+                if head == 0:
                     return acc + (" " * indent) + gen_indentation_inner(tail, acc)
-                case [head, *tail] if head > 0:
+                elif head > 0:
                     return (
                         acc
                         + VERTICAL_BAR
                         + (" " * (indent - 1))
                         + gen_indentation_inner(tail, acc)
                     )
-                case _:
+                else:
                     raise Exception("unreachable")
+
+            
+            # match number_of_remaining_children_for_each_parent:
+            #     case []:
+            #         return acc + ""
+            #     case [head] if head == 0:
+            #         return acc + END + (START * (indent - 2)) + " " 
+            #     case [head] if head > 0:
+            #         return acc + TEE + (START * (indent - 2)) + " "
+            #     case [head, *tail] if head == 0:
+            #         return acc + (" " * indent) + gen_indentation_inner(tail, acc)
+            #     case [head, *tail] if head > 0:
+            #         return (
+            #             acc
+            #             + VERTICAL_BAR
+            #             + (" " * (indent - 1))
+            #             + gen_indentation_inner(tail, acc)
+            #         )
+            #     case _:
+            #         raise Exception("unreachable")
 
         return gen_indentation_inner(number_of_remaining_children_for_each_parent, "")
 
