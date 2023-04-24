@@ -6,7 +6,7 @@ import itertools
 import os
 import sys
 from dataclasses import dataclass
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 SCRIPT_NAME: str = os.path.basename(__file__).replace(".py", "")
 
@@ -39,7 +39,7 @@ class Node:
     name: str
     children: List["Node"]
     level: int
-    metadata: str | None = None
+    metadata: Optional[str] = None
 
     @property
     def is_leaf(self) -> bool:
