@@ -1,5 +1,3 @@
-not status is-interactive; and return
-
 # variable namespace = ROS2_FISH
 
 function _ros2_install --on-event ros2_install
@@ -19,6 +17,7 @@ function _ros2_uninstall --on-event ros2_uninstall
     set --erase ROS2_FISH_VERBOSE
 end
 
+not status is-interactive; and return
 
 set -g ROS2_FISH_VERBOSE
 
@@ -75,10 +74,12 @@ end
 #     $argcomplete --shell fish $cmd | source
 # end
 
+status --fil
+
 # ROS2 aliases/abbreviations
 
-alias rtl 'ros2 topic list'
-alias rnl 'ros2 node list'
+alias rtl 'ros2 topic list --show-types | (dirname (status filename))/__as-tree.py --color'
+alias rnl 'ros2 node list | (dirname (status filename))/__as-tree.py --color'
 alias rsl 'ros2 service list'
 alias rpl 'ros2 pkg list'
 
