@@ -78,8 +78,10 @@ status --fil
 
 # ROS2 aliases/abbreviations
 
-alias rtl 'ros2 topic list --show-types | (dirname (status filename))/__as-tree.py --color'
-alias rnl 'ros2 node list | (dirname (status filename))/__as-tree.py --color'
+
+
+alias rtl 'ros2 topic list --show-types | ~/.config/fish/functions/__as-tree.py --color'
+alias rnl 'ros2 node list | ~/.config/fish/functions/__as-tree.py --color'
 alias rsl 'ros2 service list'
 alias rpl 'ros2 pkg list'
 
