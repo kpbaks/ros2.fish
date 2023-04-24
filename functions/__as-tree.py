@@ -109,7 +109,7 @@ def term_tree_view(root: Node, indent: int, formatter: Callable[[Node], str]) ->
         return gen_indentation_inner(number_of_remaining_children_for_each_parent, "")
 
     def print_node(
-        node: Node, number_of_remaining_children_for_each_parent: List[int] | None
+        node: Node, number_of_remaining_children_for_each_parent: Optional[List[int]]
     ) -> None:
         if number_of_remaining_children_for_each_parent is None:
             number_of_remaining_children_for_each_parent = []
