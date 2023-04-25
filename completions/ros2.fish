@@ -2,6 +2,38 @@ set -l C complete --command ros2
 
 set -g __fish_ros2 /opt/ros/$ROS_DISTRO/bin/ros2
 
+function __fish_seen_subcommand_with_subsubcommand --argument-names subcommand subsubcommand
+    set -l cmd (commandline -poc)
+    set -e cmd[1]
+    if test (count $cmd) -lt 2
+        return 1
+    end
+    if test $cmd[1] != $subcommand
+        return 1
+    end
+    if test $cmd[2] != $subsubcommand
+        return 1
+    end
+    return 0
+end
+
+function __fish_seen_subcommand_with_argument --argument-names subcommand
+    set -l cmd (commandline -poc)
+    set -e cmd[1]
+    if test (count $cmd) -lt 2
+        return 1
+    end
+    if test $cmd[1] != $subcommand
+        return 1
+    end
+    return 0
+end
+
+
+function __fish_print_files_in_subdirectories_with_extension --argument-names extension
+    command find . -type f -name "*.$extension" -printf '%P\n'
+end
+
 set -g __fish_ros2_all_commands action bag component daemon doctor interface launch lifecycle multicast node param pkg run security service topic wtf
 set -g __fish_ros2_action_subcommands info list send_goal
 set -g __fish_ros2_bag_subcommands info play record record-pause resume rewind
@@ -238,6 +270,10 @@ for i in (seq (count $ros2_bag_commands))
     $C -n "__fish_seen_subcommand_from bag; and not __fish_seen_subcommand_from $ros2_bag_commands" -a $command -d $description
 end
 
+$C -n "__fish_seen_subcommand_with_subsubcommand bag info" -a "(__fish_print_files_in_subdirectories_with_extension bag)"
+$C -n "__fish_seen_subcommand_with_subsubcommand bag play" -a "(__fish_print_files_in_subdirectories_with_extension bag)"
+
+
 # ros2 component ----------------------------------------------------------------------------------
 # ros2 component --help
 # usage: ros2 component [-h] Call `ros2 component <command> -h` for more detailed usage. ...
@@ -363,7 +399,15 @@ for i in (seq (count $ros2_interface_commands))
 end
 
 # ros2 launch -------------------------------------------------------------------------------------
+$C -n "__fish_seen_subcommand_from launch" -s d -l debug -d "Put the launch system in debug mode, provides more verbose output"
+$C -n "__fish_seen_subcommand_from launch" -s n -l noninteractive -d "Run the launch system non-interactively, with no terminal associated"
+$C -n "__fish_seen_subcommand_from launch" -s p -l print -d "Print the launch description to the console without launching it."
+$C -n "__fish_seen_subcommand_from launch" -s s -l show-args -d "Show arguments that may be given to the launch file."
+$C -n "__fish_seen_subcommand_from launch" -s a -l show-all-subprocesses-output -d "Show all launched subprocesses' output by overriding their output configuration using the OVERRIDE_LAUNCH_PROCESS_OUTPUT envvar."
 
+
+$C -n "__fish_seen_subcommand_from launch" -a "(__fish_ros2_print_packages)"
+$C -n "__fish_seen_subcommand_with_argument launch" -a "(__fish_ros2_print_launch_files_in_package (commandline -cp))"
 
 # ros2 lifecycle ----------------------------------------------------------------------------------
 # ros2 lifecycle --help
@@ -489,6 +533,14 @@ for i in (seq (count $ros2_pkg_commands))
     $C -n "__fish_seen_subcommand_from pkg; and not __fish_seen_subcommand_from $ros2_pkg_commands" -a $command -d $description
 end
 
+$C -n "__fish_seen_subcommand_with_subsubcommand pkg executables" -a "(__fish_ros2_print_packages)"
+$C -n "__fish_seen_subcommand_with_subsubcommand pkg xml" -a "(__fish_ros2_print_packages)"
+$C -n "__fish_seen_subcommand_with_subsubcommand pkg prefix" -a "(__fish_ros2_print_packages)"
+
+# TODO: `ros2 pkg xml <package_name> --tag <tag_name>`
+$C -n "__fish_seen_subcommand_with_subsubcommand pkg xml" -a -s t -l tag -d "The XML tag to output (e.g. 'version')"
+
+
 # ros2 run ----------------------------------------------------------------------------------------
 # ros2 run --help
 # usage: ros2 run [-h] [--prefix PREFIX] package_name executable_name ...
@@ -504,6 +556,8 @@ end
 #   -h, --help       show this help message and exit
 #   --prefix PREFIX  Prefix command, which should go before the executable. Command must be wrapped in quotes if it contains spaces (e.g. --prefix 'gdb -ex run --args').
 
+$C -n "__fish_seen_subcommand_from run" -a "(__fish_ros2_print_packages)"
+$C -n "__fish_seen_subcommand_with_argument run" -a "(__fish_ros2_print_executables (commandline --current-token))"
 
 
 
@@ -616,4 +670,14 @@ for i in (seq (count $ros2_topic_commands))
     $C -n "__fish_seen_subcommand_from topic; and not __fish_seen_subcommand_from $ros2_topic_commands" -a $command -d $description
 end
 
-$C
+
+function __topics
+    seq 10
+end
+
+$C -n "__fish_seen_subcommand_with_subsubcommand topic echo" -a "(__fish_ros2_print_topics)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic pub" -a "(__fish_ros2_print_topics)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic hz" -a "(__fish_ros2_print_topics)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic bw" -a "(__fish_ros2_print_topics)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic info" -a "(__fish_ros2_print_topics)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic type" -a "(__fish_ros2_print_topics)"
