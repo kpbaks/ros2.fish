@@ -538,7 +538,7 @@ $C -n "__fish_seen_subcommand_with_subsubcommand pkg xml" -a "(__fish_ros2_print
 $C -n "__fish_seen_subcommand_with_subsubcommand pkg prefix" -a "(__fish_ros2_print_packages)"
 
 # TODO: `ros2 pkg xml <package_name> --tag <tag_name>`
-$C -n "__fish_seen_subcommand_with_subsubcommand pkg xml" -a -s t -l tag -d "The XML tag to output (e.g. 'version')"
+# $C -n "__fish_seen_subcommand_with_subsubcommand pkg xml" -a -s t -l tag -d "The XML tag to output (e.g. 'version')"
 
 
 # ros2 run ----------------------------------------------------------------------------------------

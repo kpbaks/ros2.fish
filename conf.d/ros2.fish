@@ -1,6 +1,9 @@
 # variable namespace = ROS2_FISH
 
 function _ros2_install --on-event ros2_install
+    set_color green
+    echo "ros2.fish install"
+    set_color normal
     # Set universal variables, create bindings, and other initialization logic.
     if not set -q ROS2_FISH_ABBR_OR_ALIAS
         set -Ux ROS2_FISH_ABBR_OR_ALIAS abbr
@@ -8,10 +11,17 @@ function _ros2_install --on-event ros2_install
 end
 
 function _ros2_update --on-event ros2_update
+    set_color yellow
+    echo "ros2.fish update"
+    set_color normal
     # Migrate resources, print warnings, and other update logic.
 end
 
 function _ros2_uninstall --on-event ros2_uninstall
+    set_color red
+    echo "ros2.fish uninstall"
+    set_color normal
+
     # Erase "private" functions, variables, bindings, and other uninstall logic.
     set --erase ROS2_FISH_ABBR_OR_ALIAS
     set --erase ROS2_FISH_VERBOSE
@@ -27,6 +37,45 @@ function __ros2_fish_echo
         printf "%s%s%s %s\n" (set_color --reverse) (status current-filename) (set_color normal) (string join " " $argv)
     end
 end
+
+set -g ROS2_FISH_ABBRS
+function __ros2_fish_abbr_add --argument-names name
+    set -l abbr_args $argv[2..-1]
+    set --append ROS2_FISH_ABBRS $name
+    abbr --add $name $abbr_args
+end
+
+function __ros2_fish_abbr_list
+    for abbr in $ROS2_FISH_ABBRS
+        echo $abbr
+    end
+end
+
+set -g ROS2_FISH_ALIASES
+function __ros2_fish_alias_add --argument-names name
+    set -l alias_args $argv[2..-1]
+    set --append ROS2_FISH_ALIASES $name
+    alias $name "$alias_args"
+end
+
+function __ros2_fish_alias_list
+    for alias in $ROS2_FISH_ALIASES
+        echo $alias
+    end
+end
+
+function ros2-fish
+
+    set -l subcommand $argv[1]
+    switch $subcommand
+        case list
+            __ros2_fish_abbr_list
+            __ros2_fish_alias_list
+        case '*'
+            echo "ros2-fish: unknown subcommand $subcommand"
+    end
+end
+
 
 # Every ROS2 installation should have a /opt/ros directory
 if not test -d /opt/ros/
@@ -57,6 +106,7 @@ if not set -q ROS_DISTRO
     popd
 end
 
+__ros2_fish_echo "sourcing /opt/ros/$ROS_DISTRO/setup.bash"
 bass source /opt/ros/$ROS_DISTRO/setup.bash
 
 set -l argcomplete
@@ -66,7 +116,7 @@ else if command -q register-python-argcomplete3
     set argcomplete register-python-argcomplete3
 else
     __ros2_fish_echo "register-python-argcomplete not installed"
-    return 0
+    # return 0
 end
 
 # TODO: register-python-argcomplete does not work with fish
@@ -74,53 +124,58 @@ end
 #     $argcomplete --shell fish $cmd | source
 # end
 
-status --fil
+# status --fil
 
 # ROS2 aliases/abbreviations
 
 
 
-alias rtl 'ros2 topic list --show-types | ~/.config/fish/functions/__as-tree.py --color'
-alias rnl 'ros2 node list | ~/.config/fish/functions/__as-tree.py --color'
-alias rsl 'ros2 service list'
-alias rpl 'ros2 pkg list'
+__ros2_fish_alias_add rtl 'ros2 topic list --show-types | ~/.config/fish/functions/__as-tree.py --color'
+__ros2_fish_alias_add rnl 'ros2 node list | ~/.config/fish/functions/__as-tree.py --color'
+__ros2_fish_alias_add rsl 'ros2 service list'
+__ros2_fish_alias_add rpl 'ros2 pkg list'
 
 if command --query fzf
     if not set -q ROS2_FISH_FZF_OPTS
         set -g ROS2_FISH_FZF_OPTS --reverse \
-            --height 40% \
+            --height 50% \
             --border
     end
 
-    function rtt
-        ros2 topic list \
-            | fzf $ROS2_FISH_FZF_OPTS --preview 'ros2 topic type {}'
-    end
+    __ros2_fish_alias_add rtt "ros2 topic list | fzf $ROS2_FISH_FZF_OPTS --preview 'ros2 topic type {}'"
+    # function rtt
+    #     ros2 topic list \
+    #         | fzf $ROS2_FISH_FZF_OPTS --preview 'ros2 topic type {}'
+    # end
 
-    function rti
-        ros2 topic list \
-            | fzf $ROS2_FISH_FZF_OPTS --preview 'ros2 topic info {}'
-    end
+    __ros2_fish_alias_add rti "ros2 topic list | fzf $ROS2_FISH_FZF_OPTS --preview 'ros2 topic info {}'"
+    # function rti
+    #     ros2 topic list \
+    #         | fzf $ROS2_FISH_FZF_OPTS --preview 'ros2 topic info {}'
+    # end
+
+else
+    __ros2_fish_echo "fzf (https://github.com/junegunn/fzf) not installed. Aliases rtt and rti not created"
 end
 
-abbr -a r ros2
-abbr -a rr ros2 run
-abbr -a cb colcon build --symlink-install --packages-select
-abbr -a rbi --set-cursor ros2 bag info '*%.bag'
-abbr -a rbp --set-cursor ros2 bag play '*%.bag'
-abbr -a rbr ros2 bag record
+__ros2_fish_abbr_add r ros2
+__ros2_fish_abbr_add rr ros2 run
+__ros2_fish_abbr_add cb colcon build --symlink-install --packages-select
+__ros2_fish_abbr_add rbi --set-cursor ros2 bag info '*%.bag'
+__ros2_fish_abbr_add rbp --set-cursor ros2 bag play '*%.bag'
+__ros2_fish_abbr_add rbr ros2 bag record
 
 
 # rosdep
-abbr -a rd rosdep
-abbr -a rdi rosdep init
-abbr -a rdu rosdep update
-abbr -a rdc rosdep check
+__ros2_fish_abbr_add rd rosdep
+__ros2_fish_abbr_add rdi rosdep init
+__ros2_fish_abbr_add rdu rosdep update
+__ros2_fish_abbr_add rdc rosdep check
 
 
 # Check if rosdep is installed
 if not command --query rosdep
-    __ros2_fish_echo "rosdep not installed"
+    __ros2_fish_echo "rosdep not installed. "
 end
 
 
