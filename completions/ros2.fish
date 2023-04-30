@@ -109,8 +109,8 @@ function __fish_ros2_print_launch_files_in_package --argument-names pkg
     set -l pkg_path_prefix ($__fish_ros2 pkg prefix $pkg)
     set -l pkg_share_dir $pkg_path_prefix/share/$pkg/launch
     if test -d $pkg_share_dir
-        for file in $pkg_share_dir/*.py $pkg_share_dir/*.xml $pkg_share_dir/*.yaml
-            printf '%s\t%s\n' (basename $file) $pkg
+        for file in $pkg_share_dir/*.{py,xml,yaml,yml}
+            printf '%s\t%s\n' (path basename $file) $pkg
         end
     end
 end
@@ -407,7 +407,7 @@ $C -n "__fish_seen_subcommand_from launch" -s a -l show-all-subprocesses-output 
 
 
 $C -n "__fish_seen_subcommand_from launch" -a "(__fish_ros2_print_packages)"
-$C -n "__fish_seen_subcommand_with_argument launch" -a "(__fish_ros2_print_launch_files_in_package (commandline -cp))"
+$C -n "__fish_seen_subcommand_with_argument launch" -a "(__fish_ros2_print_launch_files_in_package (commandline -opc)[3])"
 
 # ros2 lifecycle ----------------------------------------------------------------------------------
 # ros2 lifecycle --help
