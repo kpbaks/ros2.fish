@@ -406,7 +406,7 @@ $C -n "__fish_seen_subcommand_from launch" -s s -l show-args -d "Show arguments 
 $C -n "__fish_seen_subcommand_from launch" -s a -l show-all-subprocesses-output -d "Show all launched subprocesses' output by overriding their output configuration using the OVERRIDE_LAUNCH_PROCESS_OUTPUT envvar."
 
 
-$C -n "__fish_seen_subcommand_from launch" -a "(__fish_ros2_print_packages)"
+$C -n "__fish_seen_subcommand_from launch; and test (count (commandline -opc)) -eq 3" -a "(__fish_ros2_print_packages)"
 $C -n "__fish_seen_subcommand_with_argument launch" -a "(__fish_ros2_print_launch_files_in_package (commandline -opc)[3])"
 
 # ros2 lifecycle ----------------------------------------------------------------------------------
