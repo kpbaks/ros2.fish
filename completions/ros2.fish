@@ -406,7 +406,7 @@ $C -n "__fish_seen_subcommand_from launch" -s s -l show-args -d "Show arguments 
 $C -n "__fish_seen_subcommand_from launch" -s a -l show-all-subprocesses-output -d "Show all launched subprocesses' output by overriding their output configuration using the OVERRIDE_LAUNCH_PROCESS_OUTPUT envvar."
 
 
-$C -n "__fish_seen_subcommand_from launch; and test (count (commandline -opc)) -eq 3" -a "(__fish_ros2_print_packages)"
+$C -n "__fish_seen_subcommand_from launch; and test (count (commandline -opc)) -eq 2" -a "(__fish_ros2_print_packages)"
 $C -n "__fish_seen_subcommand_with_argument launch" -a "(__fish_ros2_print_launch_files_in_package (commandline -opc)[3])"
 
 # ros2 lifecycle ----------------------------------------------------------------------------------
@@ -556,7 +556,7 @@ $C -n "__fish_seen_subcommand_with_subsubcommand pkg prefix" -a "(__fish_ros2_pr
 #   -h, --help       show this help message and exit
 #   --prefix PREFIX  Prefix command, which should go before the executable. Command must be wrapped in quotes if it contains spaces (e.g. --prefix 'gdb -ex run --args').
 
-$C -n "__fish_seen_subcommand_from run" -a "(__fish_ros2_print_packages)"
+$C -n "__fish_seen_subcommand_from run" -a "(__fish_ros2_print_packages); and test (count (commandline -opc)) -eq 2"
 $C -n "__fish_seen_subcommand_with_argument run" -a "(__fish_ros2_print_executables_in_package (commandline -opc)[3])"
 
 
