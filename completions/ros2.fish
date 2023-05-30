@@ -258,20 +258,27 @@ end
 #   Call `ros2 bag <command> -h` for more detailed usage.
 
 
+function __ros2_fish_print_directories_containing --argument-names f
+	# %h is the directory name
+	find . -type f -name "$f" -printf "%h\n" | sort -u
+end
+
 set -l ros2_bag_commands info play record
 set -l ros2_bag_command_descriptions \
     "Print information about a bag to the screen" \
     "Play back ROS data from a bag" \
     "Record ROS data to a bag"
 
-for i in (seq (count $ros2_bag_commands))
-    set -l command $ros2_bag_commands[$i]
-    set -l description $ros2_bag_command_descriptions[$i]
-    $C -n "__fish_seen_subcommand_from bag; and not __fish_seen_subcommand_from $ros2_bag_commands" -a $command -d $description
-end
 
-$C -n "__fish_seen_subcommand_with_subsubcommand bag info" -a "(__fish_print_files_in_subdirectories_with_extension bag)"
-$C -n "__fish_seen_subcommand_with_subsubcommand bag play" -a "(__fish_print_files_in_subdirectories_with_extension bag)"
+$C -n "__fish_seen_subcommand_from bag; and not __fish_seen_subcommand_from $ros2_bag_commands" -a info -d "Print information about a bag to the screen"
+$C -n "__fish_seen_subcommand_from bag; and not __fish_seen_subcommand_from $ros2_bag_commands" -a play -d "Play back ROS data from a bag"
+$C -n "__fish_seen_subcommand_from bag; and not __fish_seen_subcommand_from $ros2_bag_commands" -a record -d "Record ROS data to a bag"
+
+# $C -n "__fish_seen_subcommand_with_subsubcommand bag info" -a "(__fish_print_files_in_subdirectories_with_extension bag)"
+$C -n "__fish_seen_subcommand_with_subsubcommand bag info" -a "(__ros2_fish_print_directories_containing metadata.yaml)"
+
+# $C -n "__fish_seen_subcommand_with_subsubcommand bag play" -a "(__fish_print_files_in_subdirectories_with_extension bag)"
+$C -n "__fish_seen_subcommand_with_subsubcommand bag play" -a "(__ros2_fish_print_directories_containing metadata.yaml)"
 
 
 # ros2 component ----------------------------------------------------------------------------------
