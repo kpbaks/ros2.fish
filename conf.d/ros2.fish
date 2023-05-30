@@ -160,9 +160,33 @@ end
 
 __ros2_fish_abbr_add r ros2
 __ros2_fish_abbr_add rr ros2 run
+__ros2_fish_abbr_add rl ros2 launch
 __ros2_fish_abbr_add cb colcon build --symlink-install --packages-select
-__ros2_fish_abbr_add rbi --set-cursor ros2 bag info '*%.bag'
-__ros2_fish_abbr_add rbp --set-cursor ros2 bag play '*%.bag'
+
+
+function abbr_ros2_bag_play
+    # search all directories in the current directory for a `metadata.yaml` file
+    # if there is only one, then append the directory it is in to the command
+    set -l metadata_files (find -maxdepth 1 . -type f -name metadata.yaml)
+    set -l cmd ros2 bag play
+    if test (count $metadata_files) -eq 1
+        set --append cmd (path dirname $metadata_files[1])
+    end
+    echo -- $cmd
+end
+
+function abbr_ros2_bag_info
+    # search all directories in the current directory for a `metadata.yaml` file
+    # if there is only one, then append the directory it is in to the command
+    set -l metadata_files (find -maxdepth 1 . -type f -name metadata.yaml)
+    set -l cmd ros2 bag play
+    if test (count $metadata_files) -eq 1
+        set --append cmd (path dirname $metadata_files[1])
+    end
+end
+
+__ros2_fish_abbr_add rbi --set-cursor --function abbr_ros2_bag_info
+__ros2_fish_abbr_add rbp --set-cursor --function abbr_ros2_bag_play
 __ros2_fish_abbr_add rbr ros2 bag record
 
 
@@ -175,7 +199,7 @@ __ros2_fish_abbr_add rdc rosdep check
 
 # Check if rosdep is installed
 if not command --query rosdep
-    __ros2_fish_echo "rosdep not installed. "
+    __ros2_fish_echo "rosdep not installed."
 end
 
 
@@ -199,7 +223,7 @@ end
 #
 # # Check if rosdep has been updated
 # # After rosdep has been initialized, it needs to be updated
-# # Calling `rosdep update` will update the rosdep database, and write a cache 
+# # Calling `rosdep update` will update the rosdep database, and write a cache
 # # to ~/.ros/rosdep/{meta,source}_cache
 # # if the cache does not exist, then rosdep has not been updated
 # if not test -f ~/.ros/rosdep/meta_cache.yaml -o -f ~/.ros/rosdep/source_cache.yaml
