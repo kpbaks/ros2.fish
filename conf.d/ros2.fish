@@ -179,7 +179,7 @@ function abbr_ros2_bag_info
     # search all directories in the current directory for a `metadata.yaml` file
     # if there is only one, then append the directory it is in to the command
     set -l metadata_files (find . -maxdepth 1 -type f -name metadata.yaml)
-    set -l cmd ros2 bag play
+    set -l cmd ros2 bag info
     if test (count $metadata_files) -eq 1
         set --append cmd (path dirname $metadata_files[1])
     end
