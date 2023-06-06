@@ -167,7 +167,7 @@ __ros2_fish_abbr_add cb colcon build --symlink-install --packages-select
 function abbr_ros2_bag_play
     # search all directories in the current directory for a `metadata.yaml` file
     # if there is only one, then append the directory it is in to the command
-    set -l metadata_files (find -maxdepth 1 . -type f -name metadata.yaml)
+    set -l metadata_files (find . -maxdepth 1 -type f -name metadata.yaml)
     set -l cmd ros2 bag play
     if test (count $metadata_files) -eq 1
         set --append cmd (path dirname $metadata_files[1])
@@ -183,6 +183,7 @@ function abbr_ros2_bag_info
     if test (count $metadata_files) -eq 1
         set --append cmd (path dirname $metadata_files[1])
     end
+    echo -- $cmd
 end
 
 __ros2_fish_abbr_add rbi --set-cursor --function abbr_ros2_bag_info
