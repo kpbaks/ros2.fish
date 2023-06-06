@@ -66,7 +66,7 @@ def term_tree_view(root: Node, indent: int, formatter: Callable[[Node], str]) ->
             elif l == 1:
                 head = number_of_remaining_children_for_each_parent[0]
                 if head == 0:
-                    return acc + END + (START * (indent - 2)) + " " 
+                    return acc + END + (START * (indent - 2)) + " "
                 elif head > 0:
                     return acc + TEE + (START * (indent - 2)) + " "
                 else:
@@ -86,12 +86,12 @@ def term_tree_view(root: Node, indent: int, formatter: Callable[[Node], str]) ->
                 else:
                     raise Exception("unreachable")
 
-            
+
             # match number_of_remaining_children_for_each_parent:
             #     case []:
             #         return acc + ""
             #     case [head] if head == 0:
-            #         return acc + END + (START * (indent - 2)) + " " 
+            #         return acc + END + (START * (indent - 2)) + " "
             #     case [head] if head > 0:
             #         return acc + TEE + (START * (indent - 2)) + " "
             #     case [head, *tail] if head == 0:
@@ -136,6 +136,7 @@ def compose(*functions):
 def gen_args_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog=SCRIPT_NAME, description="")
     parser.add_argument("-d", "--delimiter", type=str, default="/", help="delimiter")
+    parser.add_argument("--wrap-metadata-in-parens", action="store_true")
     parser.add_argument(
         "--metadata-delimiter", type=str, default=" ", help="metadata delimiter"
     )
@@ -227,7 +228,10 @@ def main(argc: int, argv: List[str]) -> int:
     def formatter(node: Node) -> str:
         metadata: str = ""
         if node.is_leaf and node.metadata is not None:
-            metadata = f" ({node.metadata})"
+            if args.wrap_metadata_in_parens:
+                metadata = f" ({node.metadata})"
+            else:
+                metadata = f" {node.metadata}"
         if args.color:
             return cmap[node.level % len(cmap)] + node.name + NC + metadata
         else:
