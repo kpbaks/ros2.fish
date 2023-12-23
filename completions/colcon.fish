@@ -1,3 +1,4 @@
+set -l c complete --command colcon
 complete -c colcon -f # disable file completion
 
 # colcon -h

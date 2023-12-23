@@ -1,6 +1,7 @@
 set -l C complete --command ros2
 
 set -g __fish_ros2 /opt/ros/$ROS_DISTRO/bin/ros2
+set -g ros2_exe (command --search ros2)
 
 function __fish_seen_subcommand_with_subsubcommand --argument-names subcommand subsubcommand
     set -l cmd (commandline -poc)
@@ -192,24 +193,25 @@ $C -f # disable file completion
 $C -s h -l help -d "show this help message and exit"
 
 set -l ros2_commands action bag component daemon doctor interface launch lifecycle multicast node param pkg run security service topic wtf
+set -l ros2_command_extensions control
 
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a action -d "Various action related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a bag -d "Various rosbag related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a component -d "Various component related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a daemon -d "Various daemon related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a doctor -d "Check ROS setup and other potential issues"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a interface -d "Show information about ROS interfaces"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a launch -d "Run a launch file"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a lifecycle -d "Various lifecycle related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a multicast -d "Various multicast related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a node -d "Various node related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a param -d "Various param related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a pkg -d "Various package related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a run -d "Run a package specific executable"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a security -d "Various security related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a service -d "Various service related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a topic -d "Various topic related sub-commands"
-$C -n "not __fish_seen_subcommand_from $ros2_commands" -a wtf -d "Use `wtf` as alias to `doctor`"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a action -d "action related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a bag -d "rosbag related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a component -d "component related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a daemon -d "daemon related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a doctor -d "Check ROS setup and other potential issues"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a interface -d "Show information about ROS interfaces"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a launch -d "Run a launch file"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a lifecycle -d "lifecycle related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a multicast -d "multicast related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a node -d "node related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a param -d "param related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a pkg -d "package related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a run -d "Run a package specific executable"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a security -d "security related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a service -d "service related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a topic -d "topic related sub-commands"
+$C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a wtf -d "Use `wtf` as alias to `doctor`"
 
 
 
@@ -677,14 +679,47 @@ for i in (seq (count $ros2_topic_commands))
     $C -n "__fish_seen_subcommand_from topic; and not __fish_seen_subcommand_from $ros2_topic_commands" -a $command -d $description
 end
 
-
-function __topics
-    seq 10
-end
-
 $C -n "__fish_seen_subcommand_with_subsubcommand topic echo" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic pub" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic hz" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic bw" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic info" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic type" -a "(__fish_ros2_print_topics)"
+
+
+# With the ros2 control library, it adds the following terminal commands:
+# Currently supported commands are
+
+#     ros2 control list_controllers
+#     ros2 control list_controller_types
+#     ros2 control list_hardware_components
+#     ros2 control list_hardware_interfaces
+#     ros2 control load_controller
+#     ros2 control reload_controller_libraries
+#     ros2 control set_controller_state
+#     ros2 control switch_controllers
+#     ros2 control unload_controller
+#     ros2 control view_controller_chains
+
+# However as they are not support (yet) in this repo, if you try to autocomplete these, it will change the whole line to something else.
+
+set -l ros2_control_verbs \
+    list_controllers \
+    list_controller_types \
+    list_hardware_components \
+    list_hardware_interfaces \
+    load_controller \
+    reload_controller_libraries \
+    set_controller_state \
+    switch_controllers \
+    unload_controller \
+    view_controller_chains
+
+
+# TODO: check if ros2_control is installed before adding suggestions
+$C -n "not __fish_seen_subcommand_from $ros2_commands control" -a control -d "ros2_control (extension)"
+$C -n "__fish_seen_subcommand_from control" -a "$ros2_control_verbs"
+
+# for verb in $ros2_control_verbs
+#     $C -n "__fish_seen_subcommand_from control" -a $verb
+# end
