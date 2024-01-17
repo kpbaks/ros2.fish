@@ -1,9 +1,18 @@
-# variable namespace = ROS2_FISH
+status is-interactive; or return 0
+
+begin
+    echo $version | read --delimiter . major minor patch
+    if not test $major -ge 3 -a $minor -ge 6
+        set -l reset (set_color normal)
+        printf "[%sros2.fish%s] %serror%s: minimum required %sfish%s version is %s3.6.0%s, but you have %s%s%s\n" (set_color blue) $reset (set_color red) $reset (set_color $fish_color_command) $reset (set_color green) $reset (set_color red) $version $reset
+        return 0
+    end
+end
 
 function _ros2_install --on-event ros2_install
-    set_color green
-    echo "ros2.fish install"
-    set_color normal
+    # set_color green
+    # echo "ros2.fish install"
+    # set_color normal
     # Set universal variables, create bindings, and other initialization logic.
     if not set -q ROS2_FISH_ABBR_OR_ALIAS
         set -Ux ROS2_FISH_ABBR_OR_ALIAS abbr
@@ -11,27 +20,26 @@ function _ros2_install --on-event ros2_install
 end
 
 function _ros2_update --on-event ros2_update
-    set_color yellow
-    echo "ros2.fish update"
-    set_color normal
+    # set_color yellow
+    # echo "ros2.fish update"
+    # set_color normal
     # Migrate resources, print warnings, and other update logic.
 end
 
 function _ros2_uninstall --on-event ros2_uninstall
-    set_color red
-    echo "ros2.fish uninstall"
-    set_color normal
+    # set_color red
+    # echo "ros2.fish uninstall"
+    # set_color normal
 
     # Erase "private" functions, variables, bindings, and other uninstall logic.
     set --erase ROS2_FISH_ABBR_OR_ALIAS
     set --erase ROS2_FISH_VERBOSE
 end
 
-# not status is-interactive; and return
-status is-interactive; or return 0
 
 set -g ROS2_FISH_VERBOSE
 
+# TODO: make a logging system similar to tldr-on-error.fish
 function __ros2_fish_echo
     if set -q ROS2_FISH_VERBOSE
         set_color normal
@@ -65,8 +73,8 @@ function __ros2_fish_alias_list
     end
 end
 
-function ros2-fish
-
+function ros2.fish
+    # TODO: make prettier
     set -l subcommand $argv[1]
     switch $subcommand
         case list
