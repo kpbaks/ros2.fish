@@ -27,7 +27,8 @@ function _ros2_uninstall --on-event ros2_uninstall
     set --erase ROS2_FISH_VERBOSE
 end
 
-not status is-interactive; and return
+# not status is-interactive; and return
+status is-interactive; or return 0
 
 set -g ROS2_FISH_VERBOSE
 
@@ -167,10 +168,14 @@ __ros2_fish_abbr_add cb colcon build --symlink-install --packages-select
 function abbr_ros2_bag_play
     # search all directories in the current directory for a `metadata.yaml` file
     # if there is only one, then append the directory it is in to the command
-    set -l metadata_files (find . -maxdepth 1 -type f -name metadata.yaml)
+    set -l metadata_files (command find . -maxdepth 1 -type f -name metadata.yaml)
     set -l cmd ros2 bag play
     if test (count $metadata_files) -eq 1
+        # if builtin --query path
         set --append cmd (path dirname $metadata_files[1])
+        # else
+        #     set --append cmd (dirname $metadata_files[1])
+        # end
     end
     echo -- $cmd
 end
@@ -181,7 +186,11 @@ function abbr_ros2_bag_info
     set -l metadata_files (find . -maxdepth 1 -type f -name metadata.yaml)
     set -l cmd ros2 bag info
     if test (count $metadata_files) -eq 1
+        # if builtin --query path
         set --append cmd (path dirname $metadata_files[1])
+        # else
+        #     set --append cmd (dirname $metadata_files[1])
+        # end
     end
     echo -- $cmd
 end
@@ -189,7 +198,6 @@ end
 __ros2_fish_abbr_add rbi --set-cursor --function abbr_ros2_bag_info
 __ros2_fish_abbr_add rbp --set-cursor --function abbr_ros2_bag_play
 __ros2_fish_abbr_add rbr ros2 bag record
-
 
 # rosdep
 __ros2_fish_abbr_add rd rosdep
