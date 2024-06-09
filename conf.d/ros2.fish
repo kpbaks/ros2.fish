@@ -110,6 +110,8 @@ if not set -q ROS_DISTRO
         set -gx ROS_DISTRO galactic
     else if test -d ./foxy
         set -gx ROS_DISTRO foxy
+    else if test -d ./jazzy
+        set -gx ROS_DISTRO jazzy
     end
 
     popd
