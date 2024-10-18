@@ -217,3 +217,58 @@ end
 #                         No mixins are available for this verb
 
 complete -c colcon -n '__fish_seen_subcommand_from build' -l cmake-args -d 'Pass arguments to CMake projects. Arguments matching other options must be prefixed by a space, e.g. --cmake-args " --help" (stdout might not be shown by default, e.g. add `--event-handlers console_cohesion+`)'
+
+# colcon build ------------------------------------------------------------------------------------
+# Build-related options
+complete -c colcon -n '__fish_seen_subcommand_from build' -l build-base -d 'The base path for all build directories (default: build)'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l install-base -d 'The base path for all install prefixes (default: install)'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l merge-install -d 'Merge all install prefixes into a single location'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l symlink-install -d 'Use symlinks instead of copying files where possible'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l test-result-base -d 'The base path for all test results (default: --build-base)'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l continue-on-error -d 'Continue other packages when a package fails to build'
+
+# Executor options
+complete -c colcon -n '__fish_seen_subcommand_from build' -l executor -a 'parallel sequential' -d 'The executor to process all packages (default: parallel)'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l parallel-workers -d 'The maximum number of packages to process in parallel (default: 8)'
+
+# Event handler options
+complete -c colcon -n '__fish_seen_subcommand_from build' -l event-handlers -d 'Enable (+) or disable (-) event handlers (e.g., console_stderr+, log-, summary+)'
+
+# Discovery options
+complete -c colcon -n '__fish_seen_subcommand_from build' -l ignore-user-meta -d 'Ignore *.meta files in the user config directory'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l metas -d 'The directories containing a colcon.meta file or paths to files containing the same meta information'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l base-paths -d 'The base paths to recursively crawl for packages (default: .)'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l packages-ignore -d 'Ignore packages as if they were not discovered'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l packages-ignore-regex -d 'Ignore packages where any of the patterns match the package name'
+
+# Package selection options
+complete -c colcon -n '__fish_seen_subcommand_from build' -l packages-up-to -d 'Only process a subset of packages and their recursive dependencies'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l packages-above -d 'Only process a subset of packages and packages which recursively depend on them'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l packages-select -d 'Only process a subset of packages'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l packages-skip -d 'Skip a set of packages'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l packages-select-regex -d 'Only process packages where any of the patterns match the package name'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l packages-skip-regex -d 'Skip packages where any of the patterns match the package name'
+
+# CMake and ROS options
+complete -c colcon -n '__fish_seen_subcommand_from build' -l cmake-target -d 'Build a specific target instead of the default target'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l cmake-clean-cache -d 'Remove CMake cache before the build (forcing CMake configure step)'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l cmake-force-configure -d 'Force CMake configure step'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l ament-cmake-args -d 'Pass arguments to ament_cmake packages'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l catkin-cmake-args -d 'Pass arguments to catkin packages'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l catkin-skip-building-tests -d 'Skip building tests for catkin packages'
+
+# Mixin options
+complete -c colcon -n '__fish_seen_subcommand_from build' -l mixin-files -d 'Additional files providing mixins'
+complete -c colcon -n '__fish_seen_subcommand_from build' -l mixin -d 'No mixins are available for this verb'
+
+# General help for 'colcon build'
+complete -c colcon -n '__fish_seen_subcommand_from build' -s h -l help -d 'Show help information for build command'
+
+# Enable directory name completion inside ./src for 'colcon build', only if ./src/ exists
+if test -d ./src
+    complete -c colcon -n '__fish_seen_subcommand_from build; and __fish_seen_argument --packages-select' -f -a '(basename -a (find ./src -maxdepth 1 -type d -exec basename {} \;))'
+    complete -c colcon -n '__fish_seen_subcommand_from build; and __fish_seen_argument --packages-up-to' -f -a '(basename -a (find ./src -maxdepth 1 -type d -exec basename {} \;))'
+    complete -c colcon -n '__fish_seen_subcommand_from build; and __fish_seen_argument --packages-ignore' -f -a '(basename -a (find ./src -maxdepth 1 -type d -exec basename {} \;))'
+    complete -c colcon -n '__fish_seen_subcommand_from build; and __fish_seen_argument --paths' -f -a '(basename -a (find ./src -maxdepth 1 -type d -exec basename {} \;))'
+end
+
