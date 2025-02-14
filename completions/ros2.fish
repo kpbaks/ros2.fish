@@ -1,7 +1,7 @@
 set -l C complete --command ros2
 
 # In case you have a ros2 instalation from source
-if [ $ROS2_PATH = "/opt/ros" ]
+if test "$ROS2_PATH" = "/opt/ros"
 	set -g __fish_ros2 /opt/ros/$ROS_DISTRO/bin/ros2
 else
 	set -g __fish_ros2 $ROS2_PATH/install/ros2cli/bin/ros2

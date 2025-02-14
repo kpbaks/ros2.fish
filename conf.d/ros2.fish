@@ -143,7 +143,7 @@ if not set -q ROS_DISTRO
 end
 
 # Sourcing dependig on the kind of ROS2 installation
-if [ $ROS2_PATH = "/opt/ros" ]
+if test "$ROS2_PATH" = "/opt/ros"
   #__ros2_fish_echo "sourcing $ROS2_PATH/$ROS_DISTRO/setup.bash"
   bass source $ROS2_PATH/$ROS_DISTRO/setup.bash
 else
