@@ -48,47 +48,60 @@ function __ros2_fish_echo
 end
 
 set -g ROS2_FISH_ABBRS
+set -g ROS2_COMMANDS_ABBRS
 function __ros2_fish_abbr_add --argument-names name
     set -l abbr_args $argv[2..-1]
+    set -l command_abbr (printf "%s " $abbr_args | string trim)
+    set --append ROS2_COMMANDS_ABBRS $command_abbr
     set --append ROS2_FISH_ABBRS $name
     abbr --add $name $abbr_args
 end
 
 function __ros2_fish_abbr_list
-    for abbr in $ROS2_FISH_ABBRS
-        echo $abbr
+    for i in (seq (count $ROS2_FISH_ABBRS))
+        echo "$ROS2_FISH_ABBRS[$i]: $ROS2_COMMANDS_ABBRS[$i]"
     end
 end
 
 set -g ROS2_FISH_ALIASES
+set -g ROS2_COMMANDS_ALIASES
 function __ros2_fish_alias_add --argument-names name
     set -l alias_args $argv[2..-1]
+    set -l command_alias (printf "%s " $alias_args | string trim)
+    set --append ROS2_COMMANDS_ALIASES $command_alias
     set --append ROS2_FISH_ALIASES $name
     alias $name "$alias_args"
 end
 
 function __ros2_fish_alias_list
-    for alias in $ROS2_FISH_ALIASES
-        echo $alias
+    for i in (seq (count $ROS2_FISH_ALIASES))
+        echo "$ROS2_FISH_ALIASES[$i]: $ROS2_COMMANDS_ALIASES[$i]" 
     end
 end
 
 function ros2.fish
-    # TODO: make prettier
     set -l subcommand $argv[1]
     switch $subcommand
         case list
+            set_color green
+            echo "== ROS2 Fish Abbreviations =="
+            set_color normal
             __ros2_fish_abbr_list
+            echo
+            set_color blue
+            echo "== ROS2 Fish Aliases =="
+            set_color normal
             __ros2_fish_alias_list
         case '*'
+            set_color red
             echo "ros2-fish: unknown subcommand $subcommand"
+            set_color normal
     end
 end
 
-
-# Every ROS2 installation should have a /opt/ros directory
-if not test -d /opt/ros/
-    __ros2_fish_echo "/opt/ros/ not found"
+# Every ROS2 installation should have a /opt/ros directory unless is a source instalation
+if not test -d /opt/ros/ -o -n "$ROS2_PATH"
+    __ros2_fish_echo "/opt/ros/ or ROS2_PATH not found"
     return 0
 end
 
@@ -97,28 +110,41 @@ if not type -q bass
     return 0
 end
 
+# In case you are using a ros source installation is not necesary
 if not set -q ROS_DISTRO
-    # ROS_DISTRO
-    pushd /opt/ros
 
-    # distribution taken from https://docs.ros.org/en/galactic/Releases.html#list-of-distributions
+    # distribution taken from https://docs.ros.org/en/rolling/Releases.html#list-of-distributions
     # checked in order of release date
     # distributions that have reached EOL are not included (as of 2023-03-06)
-    if test -d ./humble
-        set -gx ROS_DISTRO humble
-    else if test -d ./galactic
-        set -gx ROS_DISTRO galactic
-    else if test -d ./foxy
-        set -gx ROS_DISTRO foxy
-    else if test -d ./jazzy
-        set -gx ROS_DISTRO jazzy
+
+    if test -d /opt/ros
+      # ROS_DISTRO
+      pushd /opt/ros
+
+      if test -d ./humble
+          set -gx ROS_DISTRO humble
+      else if test -d ./galactic
+          set -gx ROS_DISTRO galactic
+      else if test -d ./foxy
+          set -gx ROS_DISTRO foxy
+      else if test -d ./jazzy
+          set -gx ROS_DISTRO jazzy
+      else if test -d ./rolling
+          set -gx ROS_DISTRO rolling
+      end
+
+      popd
     end
 
-    popd
 end
 
-__ros2_fish_echo "sourcing /opt/ros/$ROS_DISTRO/setup.bash"
-bass source /opt/ros/$ROS_DISTRO/setup.bash
+if not test -n "$ROS2_PATH"
+    __ros2_fish_echo "sourcing /opt/ros/$ROS_DISTRO/setup.bash"
+    bass source /opt/ros/$ROS_DISTRO/setup.bash
+else
+    __ros2_fish_echo "sourcing $ROS2_PATH/setup.bash"
+    bass source $ROS2_PATH/install/setup.bash
+end
 
 set -l argcomplete
 if command -q register-python-argcomplete
@@ -172,8 +198,9 @@ end
 __ros2_fish_abbr_add r ros2
 __ros2_fish_abbr_add rr ros2 run
 __ros2_fish_abbr_add rl ros2 launch
+__ros2_fish_abbr_add sr bass source install/setup.bash 
 __ros2_fish_abbr_add cb colcon build --symlink-install --packages-select
-
+__ros2_fish_abbr_add cbs colcon build --symlink-install
 
 function abbr_ros2_bag_play
     # search all directories in the current directory for a `metadata.yaml` file
