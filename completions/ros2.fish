@@ -632,6 +632,9 @@ for i in (seq (count $ros2_service_commands))
     $C -n "__fish_seen_subcommand_from service; and not __fish_seen_subcommand_from $ros2_service_commands" -a $command -d $description
 end
 
+$C -n "__fish_seen_subcommand_with_subsubcommand service call" -a "(__fish_ros2_print_services)"
+$C -n "__fish_seen_subcommand_with_subsubcommand service info" -a "(__fish_ros2_print_services)"
+
 # ros2 topic --------------------------------------------------------------------------------------
 # ros2 topic --help
 # usage: ros2 topic [-h] [--include-hidden-topics] Call `ros2 topic <command> -h` for more detailed usage. ...
