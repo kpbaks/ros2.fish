@@ -3,6 +3,7 @@ set -l C complete --command ros2
 set -g __fish_ros2 /opt/ros/$ROS_DISTRO/bin/ros2
 set -g ros2_exe (command --search ros2)
 
+# Check if the command line's second and third arguments are the same as the given subcommand and subsubcommand
 function __fish_seen_subcommand_with_subsubcommand --argument-names subcommand subsubcommand
     set -l cmd (commandline -poc)
     set -e cmd[1]
@@ -18,6 +19,7 @@ function __fish_seen_subcommand_with_subsubcommand --argument-names subcommand s
     return 0
 end
 
+# Check if command line's second argument is the same as the given subcommand and has more than 2 arguments
 function __fish_seen_subcommand_with_argument --argument-names subcommand
     set -l cmd (commandline -poc)
     set -e cmd[1]
@@ -73,7 +75,7 @@ set -g __fish_ros2_all_subcommands \
     $__fish_ros2_topic_subcommands \
     $__fish_ros2_wtf_subcommands
 
-
+# Check if any of the command line tokens is contained in the given array
 function __fish_ros2_cmd_in_array
     for i in (commandline -pco)
         # -- is used to provide no options for contains
@@ -195,6 +197,7 @@ $C -s h -l help -d "show this help message and exit"
 set -l ros2_commands action bag component daemon doctor interface launch lifecycle multicast node param pkg run security service topic wtf
 set -l ros2_command_extensions control
 
+# If we haven't typed any of the first-level commands, suggest them
 $C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a action -d "action related sub-commands"
 $C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a bag -d "rosbag related sub-commands"
 $C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a component -d "component related sub-commands"
