@@ -88,10 +88,6 @@ function __fish_ros2_cmd_in_array
     return 1
 end
 
-function __fish_ros2_no_subcommand
-    not __fish_ros2_cmd_in_array $__fish_ros2_all_commands $__fish_ros2_subcommands
-end
-
 function __fish_ros2_print_packages
     $__fish_ros2 pkg list
 end
@@ -156,10 +152,6 @@ function __fish_ros2_print_topics
         printf '%s\t%s\n' $topic (string sub --start 2 --end -1 $type) # remove "[" and "]"
     end
 end
-
-# function __fish_ros2_print_services
-#     $__fish_ros2 service list
-# end
 
 # usage: ros2 [-h] Call `ros2 <command> -h` for more detailed usage. ...
 #
