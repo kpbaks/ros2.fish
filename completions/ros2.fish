@@ -54,7 +54,7 @@ set -g __fish_ros2_service_subcommands call list type
 set -g __fish_ros2_topic_subcommands echo hz info list pub type
 set -g __fish_ros2_wtf_subcommands
 
-set -g __fish_ros2_subcommands \
+set -g __fish_ros2_all_subcommands \
     $__fish_ros2_action_subcommands \
     $__fish_ros2_bag_subcommands \
     $__fish_ros2_component_subcommands \
