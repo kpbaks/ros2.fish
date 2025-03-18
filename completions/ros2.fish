@@ -3,10 +3,25 @@ set -l C complete --command ros2
 set -g __fish_ros2 /opt/ros/$ROS_DISTRO/bin/ros2
 set -g ros2_exe (command --search ros2)
 
+# Remove tokens starting with `-`
+function __fish_remove_options_from_commandline
+    for i in (seq (count $argv))
+        set -l first_letter "$(string sub --length 1 -- $argv[$i])"
+
+        if test $first_letter != -
+            echo $argv[$i]
+        end
+    end
+
+    return 0
+end
+
 # Check if the command line's second and third arguments are the same as the given subcommand and subsubcommand
 function __fish_seen_subcommand_with_subsubcommand --argument-names subcommand subsubcommand
-    set -l cmd (commandline -poc)
+    set -l cmd_with_options (commandline -poc)
+    set -l cmd (__fish_remove_options_from_commandline $cmd_with_options)
     set -e cmd[1]
+
     if test (count $cmd) -lt 2
         return 1
     end
@@ -32,7 +47,22 @@ function __fish_seen_subcommand_with_argument --argument-names subcommand
     return 0
 end
 
+function __fish_seen_subsubcommand_argument_from
+    set -l cmd_with_options (commandline -poc)
+    set -l cmd (__fish_remove_options_from_commandline $cmd_with_options)
+    set -e cmd[1]
 
+    if test (count $cmd) -ne 3
+        return 1
+    end
+    if contains -- $cmd[3] $argv
+        return 0
+    end
+    return 1
+end
+
+
+# Print all files recursively in the current directory with the given extension
 function __fish_print_files_in_subdirectories_with_extension --argument-names extension
     command find . -type f -name "*.$extension" -printf '%P\n'
 end
@@ -256,8 +286,8 @@ end
 
 
 function __ros2_fish_print_directories_containing --argument-names f
-	# %h is the directory name
-	find . -type f -name "$f" -printf "%h\n" | sort -u
+    # %h is the directory name
+    find . -type f -name "$f" -printf "%h\n" | sort -u
 end
 
 set -l ros2_bag_commands info play record
@@ -678,11 +708,29 @@ for i in (seq (count $ros2_topic_commands))
 end
 
 $C -n "__fish_seen_subcommand_with_subsubcommand topic echo" -a "(__fish_ros2_print_topics)"
-$C -n "__fish_seen_subcommand_with_subsubcommand topic pub" -a "(__fish_ros2_print_topics)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and not __fish_seen_subsubcommand_argument_from (ros2 topic list)" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic hz" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic bw" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic info" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic type" -a "(__fish_ros2_print_topics)"
+
+# Insert the topic type
+function __fish_ros2_get_topic_type
+    set -l cmd_with_options (commandline -poc)
+    set -l cmd (__fish_remove_options_from_commandline $cmd_with_options)
+    set -e cmd[1]
+
+    if test (count $cmd) -ne 3
+        return 1
+    end
+
+    set -l topic $cmd[3]
+    echo (ros2 topic type $topic)
+    return 0
+end
+$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and __fish_seen_subsubcommand_argument_from (ros2 topic list)" -a "(__fish_ros2_get_topic_type)"
+
+# Insert
 
 
 # With the ros2 control library, it adds the following terminal commands:
