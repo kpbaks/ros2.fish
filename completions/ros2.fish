@@ -47,21 +47,6 @@ function __fish_seen_nth_arg_from --argument-names n
     return 1
 end
 
-# Check if anything is being called with the any of the arguments/tokens contained in the given array. Tis can be helpful, e.g.:
-# - to check `ros2 topic echo` is being called with a topic name already given
-# - with n=-2 to check whether a topic name has been given plus with n=-1 to check whether a message type has been given
-function __fish_seen_any_arg_from
-    set -l cmd (commandline -poc)
-
-    for arg in $cmd
-        if contains -- $arg $argv
-            return 0
-        end
-    end
-
-    return 1
-end
-
 
 # Print all files recursively in the current directory with the given extension
 function __fish_print_files_in_subdirectories_with_extension --argument-names extension
@@ -709,7 +694,7 @@ for i in (seq (count $ros2_topic_commands))
 end
 
 $C -n "__fish_seen_subcommand_with_subsubcommand topic echo" -a "(__fish_ros2_print_topics)"
-$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and not __fish_seen_any_arg_from (ros2 topic list)" -a "(__fish_ros2_print_topics)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and not __fish_ros2_cmd_in_array (ros2 topic list)" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic hz" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic bw" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic info" -a "(__fish_ros2_print_topics)"
