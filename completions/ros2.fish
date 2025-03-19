@@ -3,23 +3,10 @@ set -l C complete --command ros2
 set -g __fish_ros2 /opt/ros/$ROS_DISTRO/bin/ros2
 set -g ros2_exe (command --search ros2)
 
-# Remove tokens starting with `-`
-function __fish_remove_options_from_commandline
-    for i in (seq (count $argv))
-        set -l first_letter "$(string sub --length 1 -- $argv[$i])"
-
-        if test $first_letter != -
-            echo $argv[$i]
-        end
-    end
-
-    return 0
-end
 
 # Check if the command line's second and third arguments are the same as the given subcommand and subsubcommand
 function __fish_seen_subcommand_with_subsubcommand --argument-names subcommand subsubcommand
-    set -l cmd_with_options (commandline -poc)
-    set -l cmd (__fish_remove_options_from_commandline $cmd_with_options)
+    set -l cmd (commandline -poc)
     set -e cmd[1]
 
     if test (count $cmd) -lt 2
@@ -47,17 +34,31 @@ function __fish_seen_subcommand_with_argument --argument-names subcommand
     return 0
 end
 
-function __fish_seen_subsubcommand_argument_from
-    set -l cmd_with_options (commandline -poc)
-    set -l cmd (__fish_remove_options_from_commandline $cmd_with_options)
-    set -e cmd[1]
+# Check if anything is being called with the nth argument/token is contained in the given array. Tis can be helpful, e.g.:
+# - with n=-1 to check whether `ros2 topic echo` is being called with a topic name already given
+# - with n=-2 to check whether a topic name has been given plus with n=-1 to check whether a message type has been given
+function __fish_seen_nth_arg_from --argument-names n
+    set -l cmd (commandline -poc)
 
-    if test (count $cmd) -ne 3
-        return 1
-    end
-    if contains -- $cmd[3] $argv
+    if contains -- $cmd[$n] $argv[2..]
         return 0
     end
+
+    return 1
+end
+
+# Check if anything is being called with the any of the arguments/tokens contained in the given array. Tis can be helpful, e.g.:
+# - to check `ros2 topic echo` is being called with a topic name already given
+# - with n=-2 to check whether a topic name has been given plus with n=-1 to check whether a message type has been given
+function __fish_seen_any_arg_from
+    set -l cmd (commandline -poc)
+
+    for arg in $cmd
+        if contains -- $arg $argv
+            return 0
+        end
+    end
+
     return 1
 end
 
@@ -708,29 +709,22 @@ for i in (seq (count $ros2_topic_commands))
 end
 
 $C -n "__fish_seen_subcommand_with_subsubcommand topic echo" -a "(__fish_ros2_print_topics)"
-$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and not __fish_seen_subsubcommand_argument_from (ros2 topic list)" -a "(__fish_ros2_print_topics)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and not __fish_seen_any_arg_from (ros2 topic list)" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic hz" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic bw" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic info" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic type" -a "(__fish_ros2_print_topics)"
 
-# Insert the topic type
+# Insert the topic type, assuming the last cmdline token is the topic
 function __fish_ros2_get_topic_type
-    set -l cmd_with_options (commandline -poc)
-    set -l cmd (__fish_remove_options_from_commandline $cmd_with_options)
-    set -e cmd[1]
+    set -l cmd (commandline -poc)
+    set -l topic $cmd[-1]
 
-    if test (count $cmd) -ne 3
-        return 1
-    end
-
-    set -l topic $cmd[3]
     echo (ros2 topic type $topic)
     return 0
 end
-$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and __fish_seen_subsubcommand_argument_from (ros2 topic list)" -a "(__fish_ros2_get_topic_type)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and __fish_seen_nth_arg_from -1 (ros2 topic list)" -a "(__fish_ros2_get_topic_type)"
 
-# Insert
 
 
 # With the ros2 control library, it adds the following terminal commands:
