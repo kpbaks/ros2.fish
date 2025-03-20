@@ -705,21 +705,22 @@ for i in (seq (count $ros2_topic_commands))
 end
 
 $C -n "__fish_seen_subcommand_with_subsubcommand topic echo" -a "(__fish_ros2_print_topics)"
-$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and not __fish_ros2_cmd_in_array (ros2 topic list)" -a "(__fish_ros2_print_topics)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and not __fish_ros2_cmd_in_array ($__fish_ros2 topic list)" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic hz" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic bw" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic info" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic type" -a "(__fish_ros2_print_topics)"
 
-# Insert the topic type, assuming the last cmdline token is the topic
+# Get the topic type, assuming the last cmdline token is the topic name
 function __fish_ros2_get_topic_type
     set -l cmd (commandline -poc)
     set -l topic $cmd[-1]
 
-    echo (ros2 topic type $topic)
+    echo ($__fish_ros2 topic type $topic)
     return 0
 end
-$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and __fish_seen_nth_arg_from -1 (ros2 topic list)" -a "(__fish_ros2_get_topic_type)"
+
+$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and __fish_seen_nth_arg_from -1 ($__fish_ros2 topic list)" -a "(__fish_ros2_get_topic_type)"
 
 
 
