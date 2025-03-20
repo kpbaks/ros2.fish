@@ -53,6 +53,44 @@ function __fish_print_files_in_subdirectories_with_extension --argument-names ex
     command find . -type f -name "*.$extension" -printf '%P\n'
 end
 
+# Count the number of leading spaces in a string
+function count_leading_spaces --argument-names str
+    set -l leading_spaces (string match -r '^ *' -- $str)
+    echo (string length -- $leading_spaces)
+end
+
+# Convert the output of the `ros2 interface proto` command to a YAML string to be used in ros2 topic pub or ros2 service call
+function proto_output_to_yaml
+    printf "{"
+    for i in (seq (count $argv))
+        set -l current_line $argv[$i]
+        set -l current_line_trimmed (string trim $current_line)
+
+        if not test -n $current_line_trimmed
+            continue
+        end
+
+        printf "%s" $current_line_trimmed
+
+        set -l last_char (string sub --start -1 -- $current_line)
+        set -l next_i (math $i + 1)
+        set -l next_line $argv[$next_i]
+        if test $last_char = ":"
+            printf " {"
+        else if set -q argv[$next_i] # There is a next line
+            if test (count_leading_spaces $current_line) -gt (count_leading_spaces $next_line)
+                printf "}"
+            end
+
+            if set -q argv[(math $next_i + 1)]
+                # Last line is empty, so if there's no next next line, we don't print a comma
+                printf ", "
+            end
+        end
+    end
+    printf "}"
+end
+
 set -g __fish_ros2_all_commands action bag component daemon doctor interface launch lifecycle multicast node param pkg run security service topic wtf
 set -g __fish_ros2_action_subcommands info list send_goal
 set -g __fish_ros2_bag_subcommands info play record record-pause resume rewind
@@ -682,6 +720,33 @@ end
 
 $C -n "__fish_seen_subcommand_with_subsubcommand service call; and __fish_seen_nth_arg_from -1 ($__fish_ros2 service list)" -a "(__fish_ros2_get_service_type)"
 
+# Check if ros2 service call is called with the last token on the command line being service type and the second to last one the service name
+function __fish_seen_ros2_service_call_with_service_name_and_type
+    if not __fish_seen_subcommand_with_subsubcommand service call
+        return 1
+    end
+
+    set -l cmd (commandline -poc)
+    if not contains -- $cmd[-2] ($__fish_ros2 service list)
+        return 1
+    end
+    return 0
+end
+
+# Get the service proto, assuming the last cmdline token is the service type and the second to last one is the service name
+function __fish_ros2_get_service_proto
+    set -l cmd (commandline -poc)
+    set -l service_type $cmd[-1]
+    set -l service_type_proto ($__fish_ros2 interface proto --no-quotes $service_type)
+    if not test -n "$service_type_proto"
+        return 1
+    end
+    echo (proto_output_to_yaml $service_type_proto)
+    return 0
+end
+
+$C -n __fish_seen_ros2_service_call_with_service_name_and_type -a "(__fish_ros2_get_service_proto)"
+
 # ros2 topic --------------------------------------------------------------------------------------
 # ros2 topic --help
 # usage: ros2 topic [-h] [--include-hidden-topics] Call `ros2 topic <command> -h` for more detailed usage. ...
@@ -742,7 +807,32 @@ end
 
 $C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and __fish_seen_nth_arg_from -1 ($__fish_ros2 topic list)" -a "(__fish_ros2_get_topic_type)"
 
+# Check if ros2 topic pub is called with the last token on the command line being topic type and the second to last one the topic name
+function __fish_seen_ros2_topic_pub_with_topic_name_and_type
+    if not __fish_seen_subcommand_with_subsubcommand topic pub
+        return 1
+    end
 
+    set -l cmd (commandline -poc)
+    if not contains -- $cmd[-2] ($__fish_ros2 topic list)
+        return 1
+    end
+    return 0
+end
+
+# Get the topic proto, assuming the last cmdline token is the topic type and the second to last one is the topic name
+function __fish_ros2_get_topic_proto
+    set -l cmd (commandline -poc)
+    set -l topic_type $cmd[-1]
+    set -l topic_type_proto ($__fish_ros2 interface proto --no-quotes $topic_type)
+    if not test -n "$topic_type_proto"
+        return 1
+    end
+    echo (proto_output_to_yaml $topic_type_proto)
+    return 0
+end
+
+$C -n __fish_seen_ros2_topic_pub_with_topic_name_and_type -a "(__fish_ros2_get_topic_proto)"
 
 # With the ros2 control library, it adds the following terminal commands:
 # Currently supported commands are

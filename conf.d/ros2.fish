@@ -2,7 +2,7 @@ status is-interactive; or return 0
 
 begin
     echo $version | read --delimiter . major minor patch
-    if not test $major -ge 3 -a $minor -ge 6
+    if not test $major -ge 4; or test $major = 3 -a $minor -ge 6
         set -l reset (set_color normal)
         printf "[%sros2.fish%s] %serror%s: minimum required %sfish%s version is %s3.6.0%s, but you have %s%s%s\n" (set_color blue) $reset (set_color red) $reset (set_color $fish_color_command) $reset (set_color green) $reset (set_color red) $version $reset
         return 0
