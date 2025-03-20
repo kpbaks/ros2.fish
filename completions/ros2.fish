@@ -169,6 +169,20 @@ function __fish_ros2_print_topics
     end
 end
 
+function __fish_ros2_print_available_lifecycle_transisions --argument-names node
+    set -l lines ($__fish_ros2 lifecycle list $node 2>/dev/null)
+    for line in $lines
+
+        set -l first_char (string sub --length 1 -- $line)
+        if test $first_char != -
+            continue
+        end
+
+        set -l tokens (string split " " -- $line)
+        printf '%s\t%s\n' $tokens[2] (string sub --start 2 --end -1 $tokens[3])
+    end
+end
+
 # usage: ros2 [-h] Call `ros2 <command> -h` for more detailed usage. ...
 #
 # ros2 is an extensible command-line tool for ROS 2.
@@ -458,6 +472,12 @@ for i in (seq (count $ros2_lifecycle_commands))
     set -l description $ros2_lifecycle_command_descriptions[$i]
     $C -n "__fish_seen_subcommand_from lifecycle; and not __fish_seen_subcommand_from $ros2_lifecycle_commands" -a $command -d $description
 end
+
+$C -n "__fish_seen_subcommand_with_subsubcommand lifecycle set; and not __fish_ros2_cmd_in_array ($__fish_ros2 lifecycle nodes)" -a "($__fish_ros2 lifecycle nodes)"
+$C -n "__fish_seen_subcommand_with_subsubcommand lifecycle get" -a "($__fish_ros2 lifecycle nodes)"
+$C -n "__fish_seen_subcommand_with_subsubcommand lifecycle list" -a "($__fish_ros2 lifecycle nodes)"
+
+$C -n "__fish_seen_subcommand_with_subsubcommand lifecycle set; and __fish_seen_nth_arg_from -1 ($__fish_ros2 lifecycle nodes)" -a "(__fish_ros2_print_available_lifecycle_transisions (commandline -opc)[-1])"
 
 # ros2 multicast ----------------------------------------------------------------------------------
 # ros2 multicast --help
