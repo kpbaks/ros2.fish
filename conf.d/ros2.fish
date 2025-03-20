@@ -1,8 +1,12 @@
-status is-interactive; or return 0
+status is-interactive; or return 1
 
 begin
     echo $version | read --delimiter . major minor patch
-    if not test $major -ge 4; or test $major = 3 -a $minor -ge 6
+    test $major -gt 3
+    or test $major -eq 3 -a $minor -ge 6
+    # Do not want to handle case where the major is <= 2, since the last
+    # release of the major was released on December 22 2017! (https://github.com/fish-shell/fish-shell/releases/tag/2.7.1)
+    or begin
         set -l reset (set_color normal)
         printf "[%sros2.fish%s] %serror%s: minimum required %sfish%s version is %s3.6.0%s, but you have %s%s%s\n" (set_color blue) $reset (set_color red) $reset (set_color $fish_color_command) $reset (set_color green) $reset (set_color red) $version $reset
         return 0
