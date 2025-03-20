@@ -648,8 +648,19 @@ for i in (seq (count $ros2_service_commands))
     $C -n "__fish_seen_subcommand_from service; and not __fish_seen_subcommand_from $ros2_service_commands" -a $command -d $description
 end
 
-$C -n "__fish_seen_subcommand_with_subsubcommand service call" -a "(__fish_ros2_print_services)"
+$C -n "__fish_seen_subcommand_with_subsubcommand service call; and not __fish_ros2_cmd_in_array ($__fish_ros2 service list)" -a "(__fish_ros2_print_services)"
 $C -n "__fish_seen_subcommand_with_subsubcommand service info" -a "(__fish_ros2_print_services)"
+
+# Get the service type, assuming the last cmdline token is the service name
+function __fish_ros2_get_service_type
+    set -l cmd (commandline -poc)
+    set -l service $cmd[-1]
+
+    echo ($__fish_ros2 service type $service)
+    return 0
+end
+
+$C -n "__fish_seen_subcommand_with_subsubcommand service call; and __fish_seen_nth_arg_from -1 ($__fish_ros2 service list)" -a "(__fish_ros2_get_service_type)"
 
 # ros2 topic --------------------------------------------------------------------------------------
 # ros2 topic --help
