@@ -1,4 +1,4 @@
-status is-interactive; or return 0
+status is-interactive; or return 1
 
 begin
     echo $version | read --delimiter . major minor patch
