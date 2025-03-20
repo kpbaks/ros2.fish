@@ -158,12 +158,41 @@ function __fish_ros2_print_executables_in_package --argument-names pkg
     end
 end
 
+# Print launch files in a package
 function __fish_ros2_print_launch_files_in_package --argument-names pkg
     set -l pkg_path_prefix ($__fish_ros2 pkg prefix $pkg)
     set -l pkg_share_dir $pkg_path_prefix/share/$pkg/launch
     if test -d $pkg_share_dir
         for file in $pkg_share_dir/*.{py,xml,yaml,yml}
+            echo $file
+        end
+    end
+end
+
+# Print filenames of all launch files in a package and the package name
+function __fish_ros2_print_launch_filenames_in_package_with_desc --argument-names pkg
+    set -l launch_files (__fish_ros2_print_launch_files_in_package $pkg)
+    for file in $launch_files
             printf '%s\t%s\n' (path basename $file) $pkg
+    end
+end
+
+# Print filenames of all launch files in a package
+function __fish_ros2_print_launch_filenames_in_package --argument-names pkg
+    set -l launch_files (__fish_ros2_print_launch_files_in_package $pkg)
+    for file in $launch_files
+        echo (path basename $file)
+    end
+end
+
+function __fish_ros2_print_launch_file_args --argument-names pkg launch_file
+    set -l argument_desciption ($__fish_ros2 launch --show-args $pkg $launch_file)
+    for i in (seq (count $argument_desciption))
+        if test (count_leading_spaces $argument_desciption[$i]) -eq 4
+            set -l argument_name (string sub --start 6 --end -2 -- $argument_desciption[$i])
+            set -l next_i (math $i + 1)
+            set -l argument_description (string trim -- $argument_desciption[$next_i])
+            printf '%s:=\t%s\n' (string trim -- $argument_name) $argument_description
         end
     end
 end
@@ -477,9 +506,10 @@ $C -n "__fish_seen_subcommand_from launch" -s p -l print -d "Print the launch de
 $C -n "__fish_seen_subcommand_from launch" -s s -l show-args -d "Show arguments that may be given to the launch file."
 $C -n "__fish_seen_subcommand_from launch" -s a -l show-all-subprocesses-output -d "Show all launched subprocesses' output by overriding their output configuration using the OVERRIDE_LAUNCH_PROCESS_OUTPUT envvar."
 
-
 $C -n "__fish_seen_subcommand_from launch; and test (count (commandline -opc)) -eq 2" -a "(__fish_ros2_print_packages)"
-$C -n "__fish_seen_subcommand_with_argument launch" -a "(__fish_ros2_print_launch_files_in_package (commandline -opc)[3])"
+$C -n "__fish_seen_subcommand_from launch; and contains (commandline -opc)[-1] (__fish_ros2_print_packages)" -a "(__fish_ros2_print_launch_filenames_in_package_with_desc (commandline -opc)[-1])"
+
+$C -n "__fish_seen_subcommand_from launch; and test (count (commandline -opc)) -ge 4; and contains (commandline -opc)[4] (__fish_ros2_print_launch_filenames_in_package (commandline -opc)[3])" -a "(__fish_ros2_print_launch_file_args (commandline -opc)[3] (commandline -opc)[4])"
 
 # ros2 lifecycle ----------------------------------------------------------------------------------
 # ros2 lifecycle --help
