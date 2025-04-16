@@ -3,9 +3,12 @@ set -l C complete --command ros2
 set -g __fish_ros2 /opt/ros/$ROS_DISTRO/bin/ros2
 set -g ros2_exe (command --search ros2)
 
+
+# Check if the command line's second and third arguments are the same as the given subcommand and subsubcommand
 function __fish_seen_subcommand_with_subsubcommand --argument-names subcommand subsubcommand
     set -l cmd (commandline -poc)
     set -e cmd[1]
+
     if test (count $cmd) -lt 2
         return 1
     end
@@ -18,6 +21,7 @@ function __fish_seen_subcommand_with_subsubcommand --argument-names subcommand s
     return 0
 end
 
+# Check if command line's second argument is the same as the given subcommand and has more than 2 arguments
 function __fish_seen_subcommand_with_argument --argument-names subcommand
     set -l cmd (commandline -poc)
     set -e cmd[1]
@@ -30,9 +34,61 @@ function __fish_seen_subcommand_with_argument --argument-names subcommand
     return 0
 end
 
+# Check if anything is being called with the nth argument/token is contained in the given array. Tis can be helpful, e.g.:
+# - with n=-1 to check whether `ros2 topic echo` is being called with a topic name already given
+# - with n=-2 to check whether a topic name has been given plus with n=-1 to check whether a message type has been given
+function __fish_seen_nth_arg_from --argument-names n
+    set -l cmd (commandline -poc)
 
+    if contains -- $cmd[$n] $argv[2..]
+        return 0
+    end
+
+    return 1
+end
+
+
+# Print all files recursively in the current directory with the given extension
 function __fish_print_files_in_subdirectories_with_extension --argument-names extension
     command find . -type f -name "*.$extension" -printf '%P\n'
+end
+
+# Count the number of leading spaces in a string
+function count_leading_spaces --argument-names str
+    set -l leading_spaces (string match -r '^ *' -- $str)
+    echo (string length -- $leading_spaces)
+end
+
+# Convert the output of the `ros2 interface proto` command to a YAML string to be used in ros2 topic pub or ros2 service call
+function proto_output_to_yaml
+    printf "{"
+    for i in (seq (count $argv))
+        set -l current_line $argv[$i]
+        set -l current_line_trimmed (string trim $current_line)
+
+        if not test -n $current_line_trimmed
+            continue
+        end
+
+        printf "%s" $current_line_trimmed
+
+        set -l last_char (string sub --start -1 -- $current_line)
+        set -l next_i (math $i + 1)
+        set -l next_line $argv[$next_i]
+        if test $last_char = ":"
+            printf " {"
+        else if set -q argv[$next_i] # There is a next line
+            if test (count_leading_spaces $current_line) -gt (count_leading_spaces $next_line)
+                printf "}"
+            end
+
+            if set -q argv[(math $next_i + 1)]
+                # Last line is empty, so if there's no next next line, we don't print a comma
+                printf ", "
+            end
+        end
+    end
+    printf "}"
 end
 
 set -g __fish_ros2_all_commands action bag component daemon doctor interface launch lifecycle multicast node param pkg run security service topic wtf
@@ -54,7 +110,7 @@ set -g __fish_ros2_service_subcommands call list type
 set -g __fish_ros2_topic_subcommands echo hz info list pub type
 set -g __fish_ros2_wtf_subcommands
 
-set -g __fish_ros2_subcommands \
+set -g __fish_ros2_all_subcommands \
     $__fish_ros2_action_subcommands \
     $__fish_ros2_bag_subcommands \
     $__fish_ros2_component_subcommands \
@@ -73,7 +129,7 @@ set -g __fish_ros2_subcommands \
     $__fish_ros2_topic_subcommands \
     $__fish_ros2_wtf_subcommands
 
-
+# Check if any of the command line tokens is contained in the given array
 function __fish_ros2_cmd_in_array
     for i in (commandline -pco)
         # -- is used to provide no options for contains
@@ -84,10 +140,6 @@ function __fish_ros2_cmd_in_array
     end
 
     return 1
-end
-
-function __fish_ros2_no_subcommand
-    not __fish_ros2_cmd_in_array $__fish_ros2_all_commands $__fish_ros2_subcommands
 end
 
 function __fish_ros2_print_packages
@@ -106,12 +158,41 @@ function __fish_ros2_print_executables_in_package --argument-names pkg
     end
 end
 
+# Print launch files in a package
 function __fish_ros2_print_launch_files_in_package --argument-names pkg
     set -l pkg_path_prefix ($__fish_ros2 pkg prefix $pkg)
     set -l pkg_share_dir $pkg_path_prefix/share/$pkg/launch
     if test -d $pkg_share_dir
         for file in $pkg_share_dir/*.{py,xml,yaml,yml}
+            echo $file
+        end
+    end
+end
+
+# Print filenames of all launch files in a package and the package name
+function __fish_ros2_print_launch_filenames_in_package_with_desc --argument-names pkg
+    set -l launch_files (__fish_ros2_print_launch_files_in_package $pkg)
+    for file in $launch_files
             printf '%s\t%s\n' (path basename $file) $pkg
+    end
+end
+
+# Print filenames of all launch files in a package
+function __fish_ros2_print_launch_filenames_in_package --argument-names pkg
+    set -l launch_files (__fish_ros2_print_launch_files_in_package $pkg)
+    for file in $launch_files
+        echo (path basename $file)
+    end
+end
+
+function __fish_ros2_print_launch_file_args --argument-names pkg launch_file
+    set -l argument_desciption ($__fish_ros2 launch --show-args $pkg $launch_file)
+    for i in (seq (count $argument_desciption))
+        if test (count_leading_spaces $argument_desciption[$i]) -eq 4
+            set -l argument_name (string sub --start 6 --end -2 -- $argument_desciption[$i])
+            set -l next_i (math $i + 1)
+            set -l argument_description (string trim -- $argument_desciption[$next_i])
+            printf '%s:=\t%s\n' (string trim -- $argument_name) $argument_description
         end
     end
 end
@@ -155,9 +236,19 @@ function __fish_ros2_print_topics
     end
 end
 
-# function __fish_ros2_print_services
-#     $__fish_ros2 service list
-# end
+function __fish_ros2_print_available_lifecycle_transisions --argument-names node
+    set -l lines ($__fish_ros2 lifecycle list $node 2>/dev/null)
+    for line in $lines
+
+        set -l first_char (string sub --length 1 -- $line)
+        if test $first_char != -
+            continue
+        end
+
+        set -l tokens (string split " " -- $line)
+        printf '%s\t%s\n' $tokens[2] (string sub --start 2 --end -1 $tokens[3])
+    end
+end
 
 # usage: ros2 [-h] Call `ros2 <command> -h` for more detailed usage. ...
 #
@@ -195,6 +286,7 @@ $C -s h -l help -d "show this help message and exit"
 set -l ros2_commands action bag component daemon doctor interface launch lifecycle multicast node param pkg run security service topic wtf
 set -l ros2_command_extensions control
 
+# If we haven't typed any of the first-level commands, suggest them
 $C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a action -d "action related sub-commands"
 $C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a bag -d "rosbag related sub-commands"
 $C -n "not __fish_seen_subcommand_from $ros2_commands $ros2_command_extensions" -a component -d "component related sub-commands"
@@ -261,8 +353,8 @@ end
 
 
 function __ros2_fish_print_directories_containing --argument-names f
-	# %h is the directory name
-	find . -type f -name "$f" -printf "%h\n" | sort -u
+    # %h is the directory name
+    find . -type f -name "$f" -printf "%h\n" | sort -u
 end
 
 set -l ros2_bag_commands info play record
@@ -414,9 +506,10 @@ $C -n "__fish_seen_subcommand_from launch" -s p -l print -d "Print the launch de
 $C -n "__fish_seen_subcommand_from launch" -s s -l show-args -d "Show arguments that may be given to the launch file."
 $C -n "__fish_seen_subcommand_from launch" -s a -l show-all-subprocesses-output -d "Show all launched subprocesses' output by overriding their output configuration using the OVERRIDE_LAUNCH_PROCESS_OUTPUT envvar."
 
-
 $C -n "__fish_seen_subcommand_from launch; and test (count (commandline -opc)) -eq 2" -a "(__fish_ros2_print_packages)"
-$C -n "__fish_seen_subcommand_with_argument launch" -a "(__fish_ros2_print_launch_files_in_package (commandline -opc)[3])"
+$C -n "__fish_seen_subcommand_from launch; and contains (commandline -opc)[-1] (__fish_ros2_print_packages)" -a "(__fish_ros2_print_launch_filenames_in_package_with_desc (commandline -opc)[-1])"
+
+$C -n "__fish_seen_subcommand_from launch; and test (count (commandline -opc)) -ge 4; and contains (commandline -opc)[4] (__fish_ros2_print_launch_filenames_in_package (commandline -opc)[3])" -a "(__fish_ros2_print_launch_file_args (commandline -opc)[3] (commandline -opc)[4])"
 
 # ros2 lifecycle ----------------------------------------------------------------------------------
 # ros2 lifecycle --help
@@ -447,6 +540,12 @@ for i in (seq (count $ros2_lifecycle_commands))
     set -l description $ros2_lifecycle_command_descriptions[$i]
     $C -n "__fish_seen_subcommand_from lifecycle; and not __fish_seen_subcommand_from $ros2_lifecycle_commands" -a $command -d $description
 end
+
+$C -n "__fish_seen_subcommand_with_subsubcommand lifecycle set; and not __fish_ros2_cmd_in_array ($__fish_ros2 lifecycle nodes)" -a "($__fish_ros2 lifecycle nodes)"
+$C -n "__fish_seen_subcommand_with_subsubcommand lifecycle get" -a "($__fish_ros2 lifecycle nodes)"
+$C -n "__fish_seen_subcommand_with_subsubcommand lifecycle list" -a "($__fish_ros2 lifecycle nodes)"
+
+$C -n "__fish_seen_subcommand_with_subsubcommand lifecycle set; and __fish_seen_nth_arg_from -1 ($__fish_ros2 lifecycle nodes)" -a "(__fish_ros2_print_available_lifecycle_transisions (commandline -opc)[-1])"
 
 # ros2 multicast ----------------------------------------------------------------------------------
 # ros2 multicast --help
@@ -637,6 +736,47 @@ for i in (seq (count $ros2_service_commands))
     $C -n "__fish_seen_subcommand_from service; and not __fish_seen_subcommand_from $ros2_service_commands" -a $command -d $description
 end
 
+$C -n "__fish_seen_subcommand_with_subsubcommand service call; and not __fish_ros2_cmd_in_array ($__fish_ros2 service list)" -a "(__fish_ros2_print_services)"
+$C -n "__fish_seen_subcommand_with_subsubcommand service info" -a "(__fish_ros2_print_services)"
+
+# Get the service type, assuming the last cmdline token is the service name
+function __fish_ros2_get_service_type
+    set -l cmd (commandline -poc)
+    set -l service $cmd[-1]
+
+    echo ($__fish_ros2 service type $service)
+    return 0
+end
+
+$C -n "__fish_seen_subcommand_with_subsubcommand service call; and __fish_seen_nth_arg_from -1 ($__fish_ros2 service list)" -a "(__fish_ros2_get_service_type)"
+
+# Check if ros2 service call is called with the last token on the command line being service type and the second to last one the service name
+function __fish_seen_ros2_service_call_with_service_name_and_type
+    if not __fish_seen_subcommand_with_subsubcommand service call
+        return 1
+    end
+
+    set -l cmd (commandline -poc)
+    if not contains -- $cmd[-2] ($__fish_ros2 service list)
+        return 1
+    end
+    return 0
+end
+
+# Get the service proto, assuming the last cmdline token is the service type and the second to last one is the service name
+function __fish_ros2_get_service_proto
+    set -l cmd (commandline -poc)
+    set -l service_type $cmd[-1]
+    set -l service_type_proto ($__fish_ros2 interface proto --no-quotes $service_type)
+    if not test -n "$service_type_proto"
+        return 1
+    end
+    echo (proto_output_to_yaml $service_type_proto)
+    return 0
+end
+
+$C -n __fish_seen_ros2_service_call_with_service_name_and_type -a "(__fish_ros2_get_service_proto)"
+
 # ros2 topic --------------------------------------------------------------------------------------
 # ros2 topic --help
 # usage: ros2 topic [-h] [--include-hidden-topics] Call `ros2 topic <command> -h` for more detailed usage. ...
@@ -680,12 +820,49 @@ for i in (seq (count $ros2_topic_commands))
 end
 
 $C -n "__fish_seen_subcommand_with_subsubcommand topic echo" -a "(__fish_ros2_print_topics)"
-$C -n "__fish_seen_subcommand_with_subsubcommand topic pub" -a "(__fish_ros2_print_topics)"
+$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and not __fish_ros2_cmd_in_array ($__fish_ros2 topic list)" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic hz" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic bw" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic info" -a "(__fish_ros2_print_topics)"
 $C -n "__fish_seen_subcommand_with_subsubcommand topic type" -a "(__fish_ros2_print_topics)"
 
+# Get the topic type, assuming the last cmdline token is the topic name
+function __fish_ros2_get_topic_type
+    set -l cmd (commandline -poc)
+    set -l topic $cmd[-1]
+
+    echo ($__fish_ros2 topic type $topic)
+    return 0
+end
+
+$C -n "__fish_seen_subcommand_with_subsubcommand topic pub; and __fish_seen_nth_arg_from -1 ($__fish_ros2 topic list)" -a "(__fish_ros2_get_topic_type)"
+
+# Check if ros2 topic pub is called with the last token on the command line being topic type and the second to last one the topic name
+function __fish_seen_ros2_topic_pub_with_topic_name_and_type
+    if not __fish_seen_subcommand_with_subsubcommand topic pub
+        return 1
+    end
+
+    set -l cmd (commandline -poc)
+    if not contains -- $cmd[-2] ($__fish_ros2 topic list)
+        return 1
+    end
+    return 0
+end
+
+# Get the topic proto, assuming the last cmdline token is the topic type and the second to last one is the topic name
+function __fish_ros2_get_topic_proto
+    set -l cmd (commandline -poc)
+    set -l topic_type $cmd[-1]
+    set -l topic_type_proto ($__fish_ros2 interface proto --no-quotes $topic_type)
+    if not test -n "$topic_type_proto"
+        return 1
+    end
+    echo (proto_output_to_yaml $topic_type_proto)
+    return 0
+end
+
+$C -n __fish_seen_ros2_topic_pub_with_topic_name_and_type -a "(__fish_ros2_get_topic_proto)"
 
 # With the ros2 control library, it adds the following terminal commands:
 # Currently supported commands are
